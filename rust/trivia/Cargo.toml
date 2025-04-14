@@ -3,10 +3,6 @@ name = "trivia"
 version.workspace = true
 edition = "2021"
 
-[[bin]]
-name = "build-pbc"
-path = "bin/build-pbc.rs"
-
 [dependencies]
 pbc_contract_common.workspace = true
 pbc_traits.workspace = true

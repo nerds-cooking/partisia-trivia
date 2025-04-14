@@ -31,15 +31,16 @@ pub fn calculate_results(
     let answers_metadata = load_metadata::<GameMetadata>(answers_var_id);
     let correct_answers = get_correct_answers(answers_var_id);
 
-    compute_score(
+    let score = compute_score(
         entry_var_id,
         correct_answers,
         // answers_metadata.length
-    )
+    );
+    
+    score
 }
 
 fn get_correct_answers(var_id: SecretVarId) -> AnswersArr {
-
     load_sbi::<AnswersArr>(var_id)
 }
 
@@ -48,17 +49,21 @@ fn compute_score(entry_var_id: SecretVarId, correct_answers: AnswersArr
 ) -> Sbi8 {
     let entry = load_sbi::<AnswersArr>(entry_var_id);
 
-
     let mut score = Sbi8::from(0);
 
     // Compare answers
     // for i in 0..question_count {
-        for i in 0..100 {
-        let index = i as usize; // This is the critical fix
-        let is_correct = entry[index] == correct_answers[index];
-        if is_correct {
-            score = score + Sbi8::from(1);
+    for i in 0..100 {
+        let index = i as usize;
+
+        if correct_answers[index] > Sbi8::from(0) {
+            // we only check answers that are not 0 (0 is used as filler)
+            let is_correct = entry[index] == correct_answers[index];
+            if is_correct {
+                score = score + Sbi8::from(1);
+            }
         }
+
     }
 
     score

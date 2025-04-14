@@ -10,6 +10,7 @@ import com.partisiablockchain.BlockchainAddress;
 import com.partisiablockchain.language.abicodegen.Trivia;
 import com.partisiablockchain.language.abicodegen.Trivia.GameState;
 import com.partisiablockchain.language.abicodegen.Trivia.GameStatusD;
+import com.partisiablockchain.language.abicodegen.Trivia.LeaderboardPosition;
 import com.partisiablockchain.language.codegenlib.SecretInput;
 import com.partisiablockchain.language.junit.ContractBytes;
 import com.partisiablockchain.language.junit.ContractTest;
@@ -17,6 +18,18 @@ import com.partisiablockchain.language.junit.JunitContractTest;
 import com.partisiablockchain.language.junit.exceptions.SecretInputFailureException;
 import com.partisiablockchain.language.testenvironment.TxExecution;
 import com.partisiablockchain.language.testenvironment.zk.node.task.PendingInputId;
+
+record LeaderboardAndPosition(
+        int index,
+        Optional<LeaderboardPosition> position
+    ) {
+        public Optional<LeaderboardPosition> getPosition() {
+            return position;
+        }
+        public int getIndex() {
+            return index;
+        }
+    }
 
 final class TriviaTest extends JunitContractTest {
 
@@ -208,7 +221,21 @@ final class TriviaTest extends JunitContractTest {
 
         GameState gameState = _gameState.get();
 
-        Assertions.assertThat(gameState.gameStatus().discriminant()).isEqualTo(GameStatusD.COMPLETE);
+        Assertions.assertThat(gameState.gameStatus().discriminant()).isEqualTo(GameStatusD.PUBLISHED);
+
+        Assertions.assertThat(gameState.resultsSvars().size()).isEqualTo(2);
+        Assertions.assertThat(gameState.leaderboard().size()).isEqualTo(2);
+
+        Assertions.assertThat(
+            getLeaderboardPosition(gameId, player1).getIndex()
+        ).isEqualTo(0); // 1st place, index 0
+        Assertions.assertThat(
+            getLeaderboardPosition(gameId, player2).getIndex()
+        ).isEqualTo(1); // 2nd place, index 1
+    
+
+        assertLeaderboardPositionScore(gameId, player1, (byte) 3);
+        assertLeaderboardPositionScore(gameId, player2, (byte) 1);
     }
 
     private PendingInputId createGame(BlockchainAddress creator, byte id, byte count, long deadline, List<Byte> answers) {
@@ -289,5 +316,44 @@ final class TriviaTest extends JunitContractTest {
             .stream()
             .filter(game -> game.gameId() == gameId)
             .findFirst();
+    }
+
+    
+
+    private LeaderboardAndPosition getLeaderboardPosition(byte gameId, BlockchainAddress player) {
+        Optional<GameState> state = getGameState(gameId);
+
+        // Fetch the leaderboard and the position on the leaderboard (index)
+        
+        int index = state.get().leaderboard()
+            .stream()
+            .map(LeaderboardPosition::player)
+            .toList()
+            .indexOf(player);
+
+        // Check if the player is in the leaderboard
+        if (index == -1) {
+            return new LeaderboardAndPosition(-1, Optional.empty());
+        }
+        // Get the leaderboard position
+        LeaderboardPosition pos = state.get().leaderboard().get(index);
+        
+        // Return
+        return new LeaderboardAndPosition(index, Optional.of(pos));
+    }
+    private void assertLeaderboardPositionScore(byte gameId, BlockchainAddress player, byte score) {
+        LeaderboardAndPosition pos = getLeaderboardPosition(gameId, player);
+
+        Assertions.assertThat(pos.getPosition()).isPresent();
+        Assertions.assertThat(pos.getPosition().get().score()).isEqualTo(score);
+    }
+    private Optional<LeaderboardPosition> getGameResult(byte gameId, BlockchainAddress player) {
+
+        Optional<GameState> gameState = getGameState(gameId);
+
+        return gameState.get().leaderboard()
+        .stream()
+        .filter(p -> p.player().equals(player))
+        .findFirst();
     }
 }

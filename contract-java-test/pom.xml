@@ -122,8 +122,6 @@
   </dependencies>
 
   <build>
-    <!-- <testSourceDirectory>${project.basedir}/contract-java-test/src/test/trivia</testSourceDirectory> -->
-
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

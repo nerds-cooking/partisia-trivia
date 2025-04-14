@@ -217,7 +217,10 @@ pub fn entry_submitted(
                         game_data_id,
                         entry_svar_id,
                         Some(SHORTNAME_ENTRY_PROCESSED),
-                        &entry_metadata.metadata
+                        &VariableKind::Result {
+                            game_id,
+                            player
+                        }
                     )
                 ],
             )
@@ -246,8 +249,7 @@ pub fn finish_game(
         game_state.complete();
 
         zk_state_changes.push(ZkStateChange::OpenVariables { 
-            // TODO!: This should be result svars not entry svars
-            variables: game_state.entries_svars.to_vec()
+            variables: game_state.results_svars.to_vec()
         })
     }
 
@@ -266,13 +268,15 @@ pub fn vars_opened(
 
     for i in 0..opened_variables.len() {
         let result = opened_variables.get(i);
-        let unwrapped_result = opened_variables.get(i).unwrap();
-        let metadata = zk_state.get_variable(*unwrapped_result).unwrap().metadata;
+        let unwrapped_result_id = opened_variables.get(i).unwrap();
+        let unwrapped_var = zk_state.get_variable(*unwrapped_result_id).unwrap();
 
-        match metadata {
-            VariableKind::Result { game_id, player, score } => {
+        match unwrapped_var.metadata {
+            VariableKind::Result { game_id, player } => {
                 touched_game_id = game_id;
                 let (_, game_state) = state.get_game_with_index_mut(game_id);
+
+                let score = read_variable_i8_le(&unwrapped_var);
 
                 game_state.add_leaderboard_entry(LeaderboardPosition {
                     game_id,
@@ -281,7 +285,7 @@ pub fn vars_opened(
                 });
 
             }
-            _ => panic!("Unexpected metadata type!"),
+            _ => panic!("Unexpected metadata type! {:?}", unwrapped_var.metadata),
         }
     }
 
@@ -291,6 +295,13 @@ pub fn vars_opened(
     (state, vec![], vec![])
 }
 
+/// Reads a variable's data as an u32.
+fn read_variable_i8_le(sum_variable: &ZkClosed<VariableKind>) -> i8 {
+    let mut buffer = [0u8; 1];
+    buffer.copy_from_slice(sum_variable.data.as_ref().unwrap().as_slice());
+    
+    <i8>::from_le_bytes(buffer)
+}
 
 #[zk_on_compute_complete(shortname = 0x61)]
 pub fn entry_processed(
@@ -301,9 +312,23 @@ pub fn entry_processed(
 ) -> (ContractState, Vec<EventGroup>, Vec<ZkStateChange>) {
     // TODO: Update entry status to processed so we can safely guarantee that the game is ready to be finished
 
-    (
-        state,
-        vec![],
-        vec![]
-    )
+    let mut zk_state_changes = vec![];
+
+    // Grab the metadata for the output variable
+    for i in 0..output_variables.len() {
+        let result = output_variables.get(i);
+        let unwrapped_result_id = output_variables.get(i).unwrap();
+        let unwrapped_var = zk_state.get_variable(*unwrapped_result_id).unwrap();
+
+        match unwrapped_var.metadata {
+            VariableKind::Result { game_id, player } => {
+                let (_, game_state) = state.get_game_with_index_mut(game_id);
+
+                game_state.add_result_svar(*unwrapped_result_id);
+            }
+            _ => panic!("Unexpected metadata type! {:?}", unwrapped_var.metadata),
+        }
+    }
+
+    (state, vec![], zk_state_changes)
 }

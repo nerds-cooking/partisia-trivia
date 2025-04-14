@@ -43,14 +43,13 @@ pub enum VariableKind {
         game_id: u8,
         player: Address
     },
-    #[discriminant(3)]
     /**
      * Result of an entry
      */
+    #[discriminant(3)]
     Result {
         game_id: u8,
-        player: Address,
-        score: i8
+        player: Address
     }
 }
 
@@ -105,6 +104,11 @@ pub struct GameState {
     pub entries_svars: Vec<SecretVarId>,
 
     /**
+     * Results data
+     */
+    pub results_svars: Vec<SecretVarId>,
+
+    /**
      * Final leaderboard
      */
     pub leaderboard: Vec<LeaderboardPosition>
@@ -122,6 +126,7 @@ impl GameState {
             players: AvlTreeSet::new(),
             game_data_svar: None,
             entries_svars: vec![],
+            results_svars: vec![],
             leaderboard: vec![],
         }
     }
@@ -180,6 +185,11 @@ impl GameState {
     /// Add a secret variable for a player's entry
     pub fn add_entry_svar(&mut self, svar: SecretVarId) {
         self.entries_svars.push(svar);
+    }
+
+    /// Add a secret variable for a player's result
+    pub fn add_result_svar(&mut self, svar: SecretVarId) {
+        self.results_svars.push(svar);
     }
 
     /// Add to leaderboard and sort

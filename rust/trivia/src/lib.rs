@@ -32,7 +32,7 @@ pub struct ContractState {
     /**
      * Game IDs
      */
-    game_ids: AvlTreeSet<u8>,
+    game_ids: AvlTreeSet<u32>,
 
     /**
      * Game state
@@ -50,7 +50,7 @@ impl ContractState {
     }
 
     /// Check if a game ID exists
-    pub fn has_game_id(&self, game_id: u8) -> bool {
+    pub fn has_game_id(&self, game_id: u32) -> bool {
         self.game_ids.contains(&game_id)
     }
 
@@ -61,17 +61,17 @@ impl ContractState {
     }
 
     /// Get a mutable reference to a game by ID
-    pub fn get_game_mut(&mut self, game_id: u8) -> Option<&mut GameState> {
+    pub fn get_game_mut(&mut self, game_id: u32) -> Option<&mut GameState> {
         self.games.iter_mut().find(|game| game.game_id == game_id)
     }
 
     /// Get an immutable reference to a game by ID
-    pub fn get_game(&self, game_id: u8) -> Option<&GameState> {
+    pub fn get_game(&self, game_id: u32) -> Option<&GameState> {
         self.games.iter().find(|game| game.game_id == game_id)
     }
 
     /// Get both index and mutable reference (used when you need to overwrite in-place)
-    pub fn get_game_with_index_mut(&mut self, game_id: u8) -> (usize, & mut GameState) {
+    pub fn get_game_with_index_mut(&mut self, game_id: u32) -> (usize, & mut GameState) {
         assert!(self.game_ids.contains(&game_id), "unknown game id");
 
         let idx = self.games.iter().position(|x| x.game_id == game_id)
@@ -94,7 +94,7 @@ pub fn initialize(
 #[repr(C)]
 #[derive(Clone, Copy, CreateTypeSpec, ReadWriteRPC)]
 pub struct GameInitParams {
-    pub game_id: u8,
+    pub game_id: u32,
     pub question_count: u8,
     pub game_deadline: i64
 }
@@ -161,7 +161,7 @@ pub fn submit_answers(
     context: ContractContext,
     mut state: ContractState,
     _zk_state: ZkState<VariableKind>,
-    game_id: u8
+    game_id: u32
 ) -> (
     ContractState,
     Vec<EventGroup>,
@@ -170,7 +170,7 @@ pub fn submit_answers(
     let (idx, game_state) = state.get_game_with_index_mut(game_id);
     assert!(game_state.is_in_progress(), "Game not in progress");
     assert!(
-        game_state.is_game_deadline_passed(context.block_time),
+        !game_state.is_game_deadline_passed(context.block_production_time),
         "Deadline limit",
     );
     assert!(
@@ -234,7 +234,7 @@ pub fn finish_game(
     context: ContractContext,
     mut state: ContractState,
     zk_state: ZkState<VariableKind>,
-    game_id: u8
+    game_id: u32
 ) -> (ContractState, Vec<EventGroup>, Vec<ZkStateChange>) {
     let mut zk_state_changes = vec![];
 
@@ -242,7 +242,7 @@ pub fn finish_game(
         let (idx, game_state) = state.get_game_with_index_mut(game_id);
         assert!(game_state.is_in_progress(), "Game not in progress");
         assert!(
-            game_state.is_game_deadline_passed(context.block_time),
+            game_state.is_game_deadline_passed(context.block_production_time),
             "Deadline limit",
         );
 
@@ -264,7 +264,7 @@ pub fn vars_opened(
     opened_variables: Vec<SecretVarId>,
 ) -> (ContractState, Vec<EventGroup>, Vec<ZkStateChange>) {
 
-    let mut touched_game_id: u8 = 0;
+    let mut touched_game_id: u32 = 0;
 
     for i in 0..opened_variables.len() {
         let result = opened_variables.get(i);

@@ -1,10 +1,26 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { ThemeProvider } from "@/components/providers/theme/theme-provider";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
+import { AuthProvider } from "./components/providers/auth/auth-provider.tsx";
+import { PartisiaProvider } from "./components/providers/partisia/partisia-provider.tsx";
+import { Toaster } from "./components/ui/sonner.tsx";
 
-createRoot(document.getElementById('root')!).render(
+import { SettingsProvider } from "./components/providers/setting/setting-provider.tsx";
+import "./index.css";
+import "./polyfill.ts";
+
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
-  </StrictMode>,
-)
+    <SettingsProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <PartisiaProvider>
+          <AuthProvider>
+            <App />
+            <Toaster position="top-center" richColors />
+          </AuthProvider>
+        </PartisiaProvider>
+      </ThemeProvider>
+    </SettingsProvider>
+  </StrictMode>
+);

@@ -1,35 +1,58 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import "./App.css";
+import { Navbar } from "./components/nav";
+import { CreateGamePage } from "./pages/create-game";
+import { GameViewPage } from "./pages/game/game-view";
+import { HomePage } from "./pages/home";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function Layout({
+  children,
+  maxWidth = 1200,
+}: {
+  children: React.ReactNode;
+  maxWidth?: number;
+}) {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="mx-auto max-w-[1200px] px-4">
+      <Navbar />
+      <div className={`mx-auto max-w-[${maxWidth}px] px-4`}>
+        <div className="py-8">{children}</div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Layout>
+              <HomePage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/create-game"
+          element={
+            <Layout maxWidth={800}>
+              <CreateGamePage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/games/:gameId"
+          element={
+            <Layout maxWidth={800}>
+              <GameViewPage />
+            </Layout>
+          }
+        />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;

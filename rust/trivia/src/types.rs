@@ -9,7 +9,7 @@ use pbc_contract_common::address::Address;
 use pbc_contract_common::avl_tree_map::AvlTreeSet;
 
 
-pub const MAX_QUESTIONS: usize = 100;
+pub const MAX_QUESTIONS: usize = 20;
 pub type AnswersArr = [Sbi8; MAX_QUESTIONS];
 
 #[derive(CreateTypeSpec, ReadWriteState, PartialEq, Clone, Debug)]
@@ -32,7 +32,7 @@ pub enum VariableKind {
      */
     #[discriminant(1)]
     GameAnswers {
-        game_id: u8,
+        game_id: u32,
         length: u8
     },
     /**
@@ -40,7 +40,7 @@ pub enum VariableKind {
      */
     #[discriminant(2)]
     Entry {
-        game_id: u8,
+        game_id: u32,
         player: Address
     },
     /**
@@ -48,7 +48,7 @@ pub enum VariableKind {
      */
     #[discriminant(3)]
     Result {
-        game_id: u8,
+        game_id: u32,
         player: Address
     }
 }
@@ -56,7 +56,7 @@ pub enum VariableKind {
 #[derive(ReadWriteState, Debug, Clone, CreateTypeSpec)]
 #[repr(C)]
 pub struct LeaderboardPosition {
-    pub game_id: u8,
+    pub game_id: u32,
     pub player: Address,
     pub score: i8
 }
@@ -66,7 +66,7 @@ pub struct GameState {
     /**
      * ID of the game
      */
-    pub game_id: u8,
+    pub game_id: u32,
 
     /**
      * Game creator
@@ -116,7 +116,7 @@ pub struct GameState {
 
 impl GameState {
     /// Create a new game state
-    pub fn new(game_id: u8, creator: Address, game_deadline: i64, question_count: u8) -> Self {
+    pub fn new(game_id: u32, creator: Address, game_deadline: i64, question_count: u8) -> Self {
         GameState {
             game_id,
             creator,
@@ -151,7 +151,7 @@ impl GameState {
 
     /// Check if game deadline passed
     pub fn is_game_deadline_passed(&self, current_time: i64) -> bool {
-        current_time < self.game_deadline
+        current_time >= self.game_deadline
     }
 
     /// Transition game to InProgress

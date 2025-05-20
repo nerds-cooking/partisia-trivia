@@ -2,8 +2,8 @@
 use create_type_spec_derive::CreateTypeSpec;
 use pbc_zk::*;
 
-// Fixed 100 length array of type Sbi8
-type AnswersArr = [Sbi8; 100];
+// Fixed 20 length array of type Sbi8
+type AnswersArr = [Sbi8; 20];
 
 const VARIABLE_KIND_DISCRIMINANT_GAME_ANSWERS: u8 = 1;
 const VARIABLE_KIND_DISCRIMINANT_ENTRY: u8 = 2;
@@ -53,7 +53,7 @@ fn compute_score(entry_var_id: SecretVarId, correct_answers: AnswersArr
 
     // Compare answers
     // for i in 0..question_count {
-    for i in 0..100 {
+    for i in 0..20 {
         let index = i as usize;
 
         if correct_answers[index] > Sbi8::from(0) {

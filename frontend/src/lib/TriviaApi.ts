@@ -3,12 +3,14 @@ import {
   BlockchainTransactionClient,
   ChainControllerApi,
   Configuration,
+  Transaction,
 } from "@partisiablockchain/blockchain-api-transaction-client";
 
 import { RealZkClient } from "@partisiablockchain/zk-client";
 import {
   createGame,
   deserializeState,
+  finishGame,
   GameInitParams,
   submitAnswers,
 } from "./TriviaApiGenerated";
@@ -19,15 +21,18 @@ export class TriviaApi {
   private readonly transactionClient: BlockchainTransactionClient | undefined;
   private readonly zkClient: RealZkClient;
   private readonly sender: BlockchainAddress;
+  private readonly contractAddress: string;
 
   constructor(
     transactionClient: BlockchainTransactionClient | undefined,
     zkClient: RealZkClient,
-    sender: BlockchainAddress
+    sender: BlockchainAddress,
+    contractAddress: string
   ) {
     this.transactionClient = transactionClient;
     this.zkClient = zkClient;
     this.sender = sender;
+    this.contractAddress = contractAddress;
   }
 
   readonly getState = async (
@@ -110,5 +115,19 @@ export class TriviaApi {
     );
 
     return this.transactionClient.signAndSend(transaction, 100_000);
+  };
+
+  readonly finishGame = async (gameId: number) => {
+    if (this.transactionClient === undefined) {
+      throw new Error("No account logged in");
+    }
+
+    const finishGameTxn = finishGame(gameId);
+    const txn: Transaction = {
+      address: this.contractAddress,
+      rpc: finishGameTxn,
+    };
+
+    return this.transactionClient.signAndSend(txn, 100_000);
   };
 }

@@ -27,69 +27,28 @@ export function GameViewPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const [s, setS] = useState<any>();
+  const [gameState, setGameState] = useState<{
+    gameId: number;
+    creator: string;
+    gameStatus: number;
+    gameDeadline: string; // timestamp
+    questionCount: number;
+    players: any; // TODO
+    gameDataSvar: any; // TODO
+    entriesSvars: any; // TODO
+    resultsSvars: any; // TODO
+    leaderboard: any; // TODO
+  }>();
 
   useEffect(() => {
-    const currentAccount = sdk?.connection.account;
-
-    if (!currentAccount) {
-      return;
-    }
-
-    // if (!currentAccount?.address) {
-    //   toast.error("No account connected");
-    //   return;
-    // }
-
-    const contractAddress = settings?.find(
-      (s) => s.name === "contractAddress"
-    )?.value;
-    if (!contractAddress) {
-      toast.error("Contract address not found");
-      return;
-    }
-
-    const partisiaClientUrl = settings?.find(
-      (s) => s.name === "partisiaClientUrl"
-    )?.value;
-    if (!partisiaClientUrl) {
-      toast.error("Partisia client URL not found");
-      return;
-    }
-
-    const client = new Client(partisiaClientUrl);
-    const transactionClient = BlockchainTransactionClient.create(
-      partisiaClientUrl,
-      {
-        getAddress: () => currentAccount!.address as BlockchainAddress,
-        sign: async (payload: Buffer) => {
-          const res = await sdk!.signMessage({
-            payload: payload.toString("hex"),
-            payloadType: "hex",
-            dontBroadcast: true,
-          });
-          return res.signature;
-        },
+    axiosInstance.get(`/api/game/${gameId}/state`).then((res) => {
+      if (res.status === 200) {
+        setGameState(res.data);
+      } else {
+        toast.error("Failed to fetch game state");
       }
-    );
-    const zkClient = RealZkClient.create(contractAddress, client);
-    const triviaApi = new TriviaApi(
-      transactionClient,
-      zkClient,
-      currentAccount!.address
-    );
-
-    axiosInstance
-      .get(`/api/game/state`)
-      .then((state) => {
-        console.log("State:", state);
-        setS(state);
-      })
-      .catch((err) => {
-        console.error("Error getting state:", err);
-        toast.error("Failed to get state");
-      });
-  }, [sdk, settings]);
+    });
+  }, [gameId]);
 
   const onSubmit = useCallback(async () => {
     if (!game) {
@@ -136,7 +95,8 @@ export function GameViewPage() {
       const triviaApi = new TriviaApi(
         transactionClient,
         zkClient,
-        currentAccount!.address
+        currentAccount!.address,
+        contractAddress
       );
 
       const answersArr = new Array(20);
@@ -164,6 +124,52 @@ export function GameViewPage() {
     }
   }, [answers, game, gameId, sdk, settings]);
 
+  const onFinish = useCallback(async () => {
+    const currentAccount = sdk?.connection.account;
+
+    const contractAddress = settings?.find(
+      (s) => s.name === "contractAddress"
+    )?.value;
+    if (!contractAddress) {
+      toast.error("Contract address not found");
+      return;
+    }
+
+    const partisiaClientUrl = settings?.find(
+      (s) => s.name === "partisiaClientUrl"
+    )?.value;
+    if (!partisiaClientUrl) {
+      toast.error("Partisia client URL not found");
+      return;
+    }
+
+    const client = new Client(partisiaClientUrl);
+    const transactionClient = BlockchainTransactionClient.create(
+      partisiaClientUrl,
+      {
+        getAddress: () => currentAccount!.address as BlockchainAddress,
+        sign: async (payload: Buffer) => {
+          const res = await sdk!.signMessage({
+            payload: payload.toString("hex"),
+            payloadType: "hex",
+            dontBroadcast: true,
+          });
+          return res.signature;
+        },
+      }
+    );
+    const zkClient = RealZkClient.create(contractAddress, client);
+
+    const triviaApi = new TriviaApi(
+      transactionClient,
+      zkClient,
+      currentAccount!.address,
+      contractAddress
+    );
+
+    const txn = await triviaApi.finishGame(Number(gameId));
+  }, [gameId, sdk, settings]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -190,7 +196,15 @@ export function GameViewPage() {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h1 className="text-2xl/7 mb-6 pt-1">{game?.name}</h1>
+      <div className="flex items-center justify-between w-full max-w-2xl px-4 py-2">
+        <h1 className="text-2xl/7 mb-6 pt-1">{game?.name}</h1>
+
+        {gameState?.creator === sdk?.connection.account.address && (
+          <Button variant="ghost" onClick={onFinish} disabled={isSubmitting}>
+            Finish Game
+          </Button>
+        )}
+      </div>
       <p className="mt-4 text-lg">{game?.description}</p>
       <p className="mt-2 text-sm text-gray-500">Category: {game?.category}</p>
       <p className="mt-2 text-sm text-gray-500">

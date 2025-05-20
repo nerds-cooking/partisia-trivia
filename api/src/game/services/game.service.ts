@@ -11,7 +11,7 @@ import { UserService } from '../../users/services/user.service';
 import { CreateGamePayload } from '../payloads/CreateGame.payload';
 import { Game } from '../schemas/game.schema';
 import { GameStatus } from '../types/GameStatus.enum';
-import { deserializeState } from '../utils/TriviaApiGenerated';
+import { deserializeState, GameState } from '../utils/TriviaApiGenerated';
 
 @Injectable()
 export class GameService {
@@ -157,6 +157,31 @@ export class GameService {
       s.serializedContract.openState.openState.data,
       'base64',
     );
-    return deserializeState(stateBuffer);
+    const deserialized = deserializeState(stateBuffer);
+
+    const desWithFixedTypes = {
+      ...deserialized,
+      games: deserialized.games.map((game: GameState) => ({
+        ...game,
+        creator: game.creator.asString(),
+        gameStatus: game.gameStatus.discriminant,
+        gameDeadline: game.gameDeadline.toString(10),
+      })),
+    };
+
+    return desWithFixedTypes;
+  }
+
+  async getOnChainGameState(gameId: string | number): Promise<any> {
+    const gameState = await this.getOnChainState();
+
+    console.log('gameState', gameState);
+
+    const game = gameState.games.find((g: any) => g.gameId === Number(gameId));
+    if (!game) {
+      throw new Error('Game not found');
+    }
+
+    return game;
   }
 }

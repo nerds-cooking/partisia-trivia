@@ -61,14 +61,7 @@ export class GameController {
   }
 
   @Get('/:gameId')
-  async getGameById(
-    @Param('gameId') gameId: string,
-    @RequestSession() session: RequestSessionType,
-  ) {
-    if (!session.user) {
-      throw new Error('User not found in session');
-    }
-
+  async getGameById(@Param('gameId') gameId: string) {
     try {
       const game = await this.gameService.getGameById(gameId);
 
@@ -80,6 +73,22 @@ export class GameController {
     } catch (e) {
       console.error('Error fetching game:', e);
       throw new Error('Failed to fetch game');
+    }
+  }
+
+  @Get('/:gameId/state')
+  async getGameState(@Param('gameId') gameId: string) {
+    try {
+      const game = await this.gameService.getOnChainGameState(gameId);
+
+      if (!game) {
+        throw new Error('Game not found');
+      }
+
+      return game;
+    } catch (e) {
+      console.error('Error fetching game state:', e);
+      throw new Error('Failed to fetch game state');
     }
   }
 }

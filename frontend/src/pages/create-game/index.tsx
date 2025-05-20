@@ -83,7 +83,8 @@ export function CreateGamePage() {
       const triviaApi = new TriviaApi(
         transactionClient,
         zkClient,
-        currentAccount!.address
+        currentAccount!.address,
+        contractAddress
       );
 
       const answersArr = new Array(20);

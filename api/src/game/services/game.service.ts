@@ -67,6 +67,45 @@ export class GameService {
       .exec();
   }
 
+  async getGames(
+    page: number,
+    limit: number,
+  ): Promise<{
+    games: Game[];
+    totalItems: number;
+    totalPages: number;
+    page: number;
+  }> {
+    const games = await this.gameModel
+      .find()
+      .sort({
+        createdAt: -1,
+      })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .select({
+        _id: 1,
+        gameId: 1,
+        name: 1,
+        description: 1,
+        category: 1,
+        status: 1,
+        createdAt: 1,
+        deadline: 1,
+      })
+      .exec();
+
+    const totalItems = await this.gameModel.countDocuments().exec();
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      games,
+      totalItems,
+      totalPages,
+      page,
+    };
+  }
+
   async finishGame(gameId: string): Promise<void> {
     const game = await this.gameModel.findOne({ gameId }).exec();
     if (!game) {

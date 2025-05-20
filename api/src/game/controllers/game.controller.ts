@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import {
   RequestSession,
   RequestSessionType,
@@ -24,6 +24,19 @@ export class GameController {
     } catch (e) {
       console.error('Error creating game:', e);
       throw new Error('Failed to create game');
+    }
+  }
+
+  @Get('/')
+  async getGames(@Query('page') page: string, @Query('limit') limit: string) {
+    try {
+      return await this.gameService.getGames(
+        Number(page || 1),
+        Number(limit || 10),
+      );
+    } catch (e) {
+      console.error('Error fetching games:', e);
+      throw new Error('Failed to fetch games');
     }
   }
 

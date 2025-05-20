@@ -1,6 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
+  BlockchainAddress,
+  BlockchainStateClientImpl,
+} from '@partisiablockchain/abi-client';
+import {
   ChainControllerApi,
   Configuration,
 } from '@partisiablockchain/blockchain-api-transaction-client';
@@ -157,16 +161,31 @@ export class GameService {
       s.serializedContract.openState.openState.data,
       'base64',
     );
-    const deserialized = deserializeState(stateBuffer);
+
+    const stateClient = BlockchainStateClientImpl.create(partisiaClientUrl);
+
+    const deserialized = deserializeState(
+      stateBuffer,
+      stateClient,
+      BlockchainAddress.fromString(contractAddress),
+    );
 
     const desWithFixedTypes = {
       ...deserialized,
-      games: deserialized.games.map((game: GameState) => ({
-        ...game,
-        creator: game.creator.asString(),
-        gameStatus: game.gameStatus.discriminant,
-        gameDeadline: game.gameDeadline.toString(10),
-      })),
+      gameIds: await deserialized.gameIds.innerMap
+        .getNextN(void 0, await deserialized.gameIds.innerMap.size())
+        .then((entries) => entries.map((a) => a.key)),
+      games: await Promise.all(
+        deserialized.games.map(async (game: GameState) => ({
+          ...game,
+          creator: game.creator.asString(),
+          gameStatus: game.gameStatus.discriminant,
+          gameDeadline: game.gameDeadline.toString(10),
+          players: await game.players.innerMap
+            .getNextN(void 0, await game.players.innerMap.size())
+            .then((entries) => entries.map((a) => a.key.asString())),
+        })),
+      ),
     };
 
     return desWithFixedTypes;
@@ -175,7 +194,7 @@ export class GameService {
   async getOnChainGameState(gameId: string | number): Promise<any> {
     const gameState = await this.getOnChainState();
 
-    console.log('gameState', gameState);
+    // console.log('gameState', JSON.stringify(gameState, null, 2));
 
     const game = gameState.games.find((g: any) => g.gameId === Number(gameId));
     if (!game) {

@@ -14,7 +14,7 @@ import { SettingService } from 'src/settings/services/setting.service';
 import { UserService } from '../../users/services/user.service';
 import { CreateGamePayload } from '../payloads/CreateGame.payload';
 import { Game } from '../schemas/game.schema';
-import { GameStatus } from '../types/GameStatus.enum';
+import { GameOnChainStatus, GameStatus } from '../types/GameStatus.enum';
 import {
   deserializeState,
   GameState,
@@ -41,12 +41,32 @@ export class GameService {
       throw new Error('User not found');
     }
 
+    const state = await this.getOnChainGameState(payload.gameId);
+
+    let updatedState = state;
+    if (state && state.gameStatus !== GameOnChainStatus.IN_PROGRESS) {
+      const maxAttempts = 10;
+      let attempts = 0;
+
+      while (
+        updatedState &&
+        updatedState.gameStatus !== GameOnChainStatus.IN_PROGRESS &&
+        attempts < maxAttempts
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        updatedState = await this.getOnChainGameState(payload.gameId);
+        attempts++;
+      }
+    }
+
     const game = new this.gameModel({
       ...payload,
       creator: user._id,
       createdAt: new Date(),
       updatedAt: new Date(),
-      status: GameStatus.IN_PROGRESS,
+      status: this.mapGameOnChainStatusToGameStatus(
+        updatedState?.gameStatus || GameOnChainStatus.PENDING,
+      ),
     });
 
     await game.save();
@@ -233,7 +253,7 @@ export class GameService {
   async getOnChainGameState(gameId: string | number): Promise<any> {
     const gameState = await this.getOnChainState();
 
-    console.log('gameState', JSON.stringify(gameState, null, 2));
+    // console.log('gameState', JSON.stringify(gameState, null, 2));
 
     const game = gameState.games.find((g: any) => g.gameId === Number(gameId));
     if (!game) {
@@ -241,5 +261,22 @@ export class GameService {
     }
 
     return game;
+  }
+
+  private mapGameOnChainStatusToGameStatus(
+    onChainStatus: GameOnChainStatus,
+  ): GameStatus {
+    switch (onChainStatus) {
+      case GameOnChainStatus.PENDING:
+        return GameStatus.PENDING;
+      case GameOnChainStatus.IN_PROGRESS:
+        return GameStatus.IN_PROGRESS;
+      case GameOnChainStatus.COMPLETE:
+        return GameStatus.FINISHED;
+      case GameOnChainStatus.PUBLISHED:
+        return GameStatus.PUBLISHED;
+      default:
+        throw new Error(`Unknown GameOnChainStatus: ${String(onChainStatus)}`);
+    }
   }
 }

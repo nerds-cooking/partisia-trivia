@@ -3,17 +3,17 @@ import {
   BlockchainTransactionClient,
   ChainControllerApi,
   Configuration,
-  Transaction,
-} from "@partisiablockchain/blockchain-api-transaction-client";
+  Transaction
+} from '@partisiablockchain/blockchain-api-transaction-client';
 
-import { RealZkClient } from "@partisiablockchain/zk-client";
+import { RealZkClient } from '@partisiablockchain/zk-client';
 import {
   createGame,
   deserializeState,
   finishGame,
   GameInitParams,
-  submitAnswers,
-} from "./TriviaApiGenerated";
+  submitAnswers
+} from './TriviaApiGenerated';
 
 export interface TriviaBasicState {}
 
@@ -44,12 +44,12 @@ export class TriviaApi {
 
     const client = new ChainControllerApi(
       new Configuration({
-        basePath: clientHost,
+        basePath: clientHost
       })
     );
 
     const contract = await client.getContract({
-      address: contractAddress,
+      address: contractAddress
     });
 
     const shardId = contract.shardId;
@@ -60,18 +60,18 @@ export class TriviaApi {
       `https://node1.testnet.partisiablockchain.com/${endpoint}`
     );
 
-    console.log("response", response);
+    console.log('response', response);
 
-    console.log("contract", contract);
+    console.log('contract', contract);
 
     const s = await response.json();
 
-    console.log("fetched", s.serializedContract);
-    console.log("normal", contract.serializedContract);
+    console.log('fetched', s.serializedContract);
+    console.log('normal', contract.serializedContract);
 
     const stateBuffer = Buffer.from(
       s.serializedContract.openState.openState.data,
-      "base64"
+      'base64'
     );
     return deserializeState(stateBuffer);
 
@@ -87,7 +87,7 @@ export class TriviaApi {
    */
   readonly createGame = async (params: GameInitParams, answers: number[]) => {
     if (this.transactionClient === undefined) {
-      throw new Error("No account logged in");
+      throw new Error('No account logged in');
     }
 
     const createGameSecretInputBuilder = createGame(params);
@@ -98,12 +98,16 @@ export class TriviaApi {
       secretInput.publicRpc
     );
 
-    return this.transactionClient.signAndSend(transaction, 100_000);
+    const txn = await this.transactionClient.signAndSend(transaction, 100_000);
+
+    await this.transactionClient.waitForInclusionInBlock(txn);
+
+    return txn;
   };
 
   readonly submitAnswers = async (gameId: number, answers: number[]) => {
     if (this.transactionClient === undefined) {
-      throw new Error("No account logged in");
+      throw new Error('No account logged in');
     }
 
     const submitAnswersSecretInputBuilder = submitAnswers(gameId);
@@ -119,13 +123,13 @@ export class TriviaApi {
 
   readonly finishGame = async (gameId: number) => {
     if (this.transactionClient === undefined) {
-      throw new Error("No account logged in");
+      throw new Error('No account logged in');
     }
 
     const finishGameTxn = finishGame(gameId);
     const txn: Transaction = {
       address: this.contractAddress,
-      rpc: finishGameTxn,
+      rpc: finishGameTxn
     };
 
     return this.transactionClient.signAndSend(txn, 100_000);

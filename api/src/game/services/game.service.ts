@@ -15,7 +15,11 @@ import { UserService } from '../../users/services/user.service';
 import { CreateGamePayload } from '../payloads/CreateGame.payload';
 import { Game } from '../schemas/game.schema';
 import { GameStatus } from '../types/GameStatus.enum';
-import { deserializeState, GameState } from '../utils/TriviaApiGenerated';
+import {
+  deserializeState,
+  GameState,
+  GameStatusD,
+} from '../utils/TriviaApiGenerated';
 
 @Injectable()
 export class GameService {
@@ -123,7 +127,27 @@ export class GameService {
     await game.save();
   }
 
-  async getOnChainState(): Promise<any> {
+  async getOnChainState(): Promise<{
+    gameIds: number[];
+    games: Array<{
+      gameId: number;
+      creator: string;
+      gameStatus: GameStatusD;
+      /**
+       * ISO timestamp with millis
+       */
+      gameDeadline: string;
+      players: string[];
+      gameDataSvar: { rawId: string };
+      entriesSvars: Array<{ rawId: string }>;
+      resultsSvars: Array<{ rawId: string }>;
+      leaderboard: Array<{
+        gameId: number;
+        player: string;
+        score: number;
+      }>;
+    }>;
+  }> {
     const settings = await this.settingService.findAll();
 
     const contractAddress = settings.find(
@@ -184,6 +208,21 @@ export class GameService {
           players: await game.players.innerMap
             .getNextN(void 0, await game.players.innerMap.size())
             .then((entries) => entries.map((a) => a.key.asString())),
+          gameDataSvar: {
+            rawId: game.gameDataSvar?.rawId.toString(10) || '',
+          },
+          entriesSvars: game.entriesSvars.map((a) => ({
+            rawId: a.rawId.toString(10),
+          })),
+          resultsSvars: game.resultsSvars.map((a) => ({
+            rawId: a.rawId.toString(10),
+          })),
+          leaderboard: game.leaderboard
+            .map((a) => ({
+              ...a,
+              player: a.player.asString(),
+            }))
+            .sort((a, b) => b.score - a.score),
         })),
       ),
     };
@@ -194,7 +233,7 @@ export class GameService {
   async getOnChainGameState(gameId: string | number): Promise<any> {
     const gameState = await this.getOnChainState();
 
-    // console.log('gameState', JSON.stringify(gameState, null, 2));
+    console.log('gameState', JSON.stringify(gameState, null, 2));
 
     const game = gameState.games.find((g: any) => g.gameId === Number(gameId));
     if (!game) {

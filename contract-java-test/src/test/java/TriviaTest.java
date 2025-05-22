@@ -140,7 +140,6 @@ final class TriviaTest extends JunitContractTest {
         .hasMessageContaining("Game end must be in the future");
     }
 
-
     @ContractTest(previous = "testCreateGame")
     void testSubmitAnswers() {
         int gameId = 123;
@@ -260,6 +259,45 @@ final class TriviaTest extends JunitContractTest {
 
         assertLeaderboardPositionScore(gameId, player1, (byte) 3);
         assertLeaderboardPositionScore(gameId, player2, (byte) 1);
+    }
+
+    @ContractTest(previous = "testSubmitAnswers")
+    void testFinishGameWithNoResults() {
+        int gameId = 555;
+
+        // Create the game
+        createGame(
+            creator1,
+            gameId,
+            (byte) 3,
+            System.currentTimeMillis() + (10 * 60 * 1000)
+        );
+        
+        // Check that the game is created
+        assertGameIdIsTracked(gameId);
+
+        // force time to AFTER the game deadline
+        blockchain.waitForBlockProductionTime(getGameState(gameId).get().gameDeadline() + 1);
+
+        Assertions.assertThat(blockchain.getBlockProductionTime()).isGreaterThan(
+            getGameState(gameId).get().gameDeadline()
+        );
+
+        finishGame(
+            creator1,
+            gameId
+        );
+
+        Optional<GameState> _gameState = getGameState(gameId);
+
+        Assertions.assertThat(_gameState).isPresent();
+
+        GameState gameState = _gameState.get();
+
+        Assertions.assertThat(gameState.gameStatus().discriminant()).isEqualTo(GameStatusD.PUBLISHED);
+
+        Assertions.assertThat(gameState.resultsSvars().size()).isEqualTo(0);
+        Assertions.assertThat(gameState.leaderboard().size()).isEqualTo(0);
     }
 
     private PendingInputId createGame(BlockchainAddress creator, int id, byte count, long deadline, List<Byte> answers) {

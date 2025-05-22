@@ -246,11 +246,17 @@ pub fn finish_game(
             "Deadline limit",
         );
 
-        game_state.complete();
+        if game_state.entries_svars.len() == 0 {
+            // No entries, nothing for MPC to do - just publish the game
+            game_state.publish();
+        } else {
+            game_state.complete();
+            
+            zk_state_changes.push(ZkStateChange::OpenVariables { 
+                variables: game_state.results_svars.to_vec()
+            })
+        }
 
-        zk_state_changes.push(ZkStateChange::OpenVariables { 
-            variables: game_state.results_svars.to_vec()
-        })
     }
 
     (state, vec![], zk_state_changes)

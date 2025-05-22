@@ -23,6 +23,7 @@ export default defineConfig({
   define: {
     global: "globalThis", // Define globalThis as global
     process: JSON.stringify({
+      version: "v23.11.1", // Set process version
       env: { NODE_ENV: "production" }, // Add any environment variables you need
     }),
   },

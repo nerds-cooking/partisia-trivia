@@ -5,11 +5,11 @@
 import { Buffer } from "buffer";
 import crypto from "crypto-browserify";
 import { EventEmitter } from "events";
-import process from "process";
+// import process from "process";
 import { Duplex, Stream, Transform } from "stream-browserify";
 
-process.version = process.version || "v23.11.1";
-window.process = process;
+// process.version = process.version || "v23.11.1";
+// window.process = process;
 
 if (!window.Buffer) {
   window.Buffer = Buffer;

@@ -41,10 +41,10 @@ export function GameViewPage() {
   const isPending = game?.onChainGameState?.gameStatus === GameStatusD.Pending;
   const isInProgress =
     game?.onChainGameState?.gameStatus === GameStatusD.InProgress &&
-    +new Date() < +new Date(game?.onChainGameState.gameDeadline);
+    +new Date() < +new Date(Number(game?.onChainGameState.gameDeadline));
   const isPendingFinish =
     game?.onChainGameState?.gameStatus === GameStatusD.InProgress &&
-    +new Date() > +new Date(game?.onChainGameState.gameDeadline);
+    +new Date() > +new Date(Number(game?.onChainGameState.gameDeadline));
   const isFinished =
     game?.onChainGameState?.gameStatus === GameStatusD.Complete;
   const isPublished =

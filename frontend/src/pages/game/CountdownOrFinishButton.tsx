@@ -22,7 +22,7 @@ export function CountdownOrFinishButton({
 
   onFinish?: () => void;
 }) {
-  const gameDeadline = new Date(onChainGameState.gameDeadline);
+  const gameDeadline = new Date(Number(onChainGameState.gameDeadline));
   const now = new Date();
 
   if (isPending) {

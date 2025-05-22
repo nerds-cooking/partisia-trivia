@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 
 export function GamesListPage() {
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(12);
+  const [limit] = useState(12);
   const navigate = useNavigate();
 
   const fetchGames = useCallback(async () => {

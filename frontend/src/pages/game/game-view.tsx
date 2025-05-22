@@ -120,49 +120,58 @@ export function GameViewPage() {
   }, [answers, game, gameId, navigate, sdk, settings]);
 
   const onFinish = useCallback(async () => {
-    const currentAccount = sdk?.connection.account;
+    setIsSubmitting(true);
 
-    const contractAddress = settings?.find(
-      (s) => s.name === "contractAddress"
-    )?.value;
-    if (!contractAddress) {
-      toast.error("Contract address not found");
-      return;
-    }
+    try {
+      const currentAccount = sdk?.connection.account;
 
-    const partisiaClientUrl = settings?.find(
-      (s) => s.name === "partisiaClientUrl"
-    )?.value;
-    if (!partisiaClientUrl) {
-      toast.error("Partisia client URL not found");
-      return;
-    }
-
-    const client = new Client(partisiaClientUrl);
-    const transactionClient = BlockchainTransactionClient.create(
-      partisiaClientUrl,
-      {
-        getAddress: () => currentAccount!.address as BlockchainAddress,
-        sign: async (payload: Buffer) => {
-          const res = await sdk!.signMessage({
-            payload: payload.toString("hex"),
-            payloadType: "hex",
-            dontBroadcast: true,
-          });
-          return res.signature;
-        },
+      const contractAddress = settings?.find(
+        (s) => s.name === "contractAddress"
+      )?.value;
+      if (!contractAddress) {
+        toast.error("Contract address not found");
+        return;
       }
-    );
-    const zkClient = RealZkClient.create(contractAddress, client);
 
-    const triviaApi = new TriviaApi(
-      transactionClient,
-      zkClient,
-      currentAccount!.address,
-      contractAddress
-    );
+      const partisiaClientUrl = settings?.find(
+        (s) => s.name === "partisiaClientUrl"
+      )?.value;
+      if (!partisiaClientUrl) {
+        toast.error("Partisia client URL not found");
+        return;
+      }
 
-    const txn = await triviaApi.finishGame(Number(gameId));
+      const client = new Client(partisiaClientUrl);
+      const transactionClient = BlockchainTransactionClient.create(
+        partisiaClientUrl,
+        {
+          getAddress: () => currentAccount!.address as BlockchainAddress,
+          sign: async (payload: Buffer) => {
+            const res = await sdk!.signMessage({
+              payload: payload.toString("hex"),
+              payloadType: "hex",
+              dontBroadcast: true,
+            });
+            return res.signature;
+          },
+        }
+      );
+      const zkClient = RealZkClient.create(contractAddress, client);
+
+      const triviaApi = new TriviaApi(
+        transactionClient,
+        zkClient,
+        currentAccount!.address,
+        contractAddress
+      );
+
+      await triviaApi.finishGame(Number(gameId));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to finish game");
+    } finally {
+      setIsSubmitting(false);
+    }
   }, [gameId, sdk, settings]);
 
   if (loading) {
@@ -202,16 +211,18 @@ export function GameViewPage() {
       <div className="flex items-center justify-between w-full max-w-2xl px-4 py-2">
         <h1 className="text-2xl/7 mb-6 pt-1">{game?.name}</h1>
 
-        <CountdownOrFinishButton
-          isPending={isPending}
-          isInProgress={isInProgress}
-          isPendingFinish={isPendingFinish}
-          isFinished={isFinished}
-          isPublished={isPublished}
-          onChainGameState={game.onChainGameState}
-          currentAccount={sdk.connection.account.address}
-          onFinish={onFinish}
-        />
+        {!isSubmitting && (
+          <CountdownOrFinishButton
+            isPending={isPending}
+            isInProgress={isInProgress}
+            isPendingFinish={isPendingFinish}
+            isFinished={isFinished}
+            isPublished={isPublished}
+            onChainGameState={game.onChainGameState}
+            currentAccount={sdk.connection.account.address}
+            onFinish={onFinish}
+          />
+        )}
       </div>
       <div className="w-full max-w-2xl px-4 py-2">
         <Label>Description</Label>
@@ -281,6 +292,7 @@ export function GameViewPage() {
                 <Button
                   variant="default"
                   className="w-1/3"
+                  disabled={isSubmitting}
                   onClick={() => {
                     if (activeQuestionIdx === game?.questions.length) {
                       onSubmit();

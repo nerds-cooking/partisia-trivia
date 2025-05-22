@@ -14,7 +14,7 @@ import { SettingService } from 'src/settings/services/setting.service';
 import { UserService } from '../../users/services/user.service';
 import { CreateGamePayload } from '../payloads/CreateGame.payload';
 import { Game } from '../schemas/game.schema';
-import { GameOnChainStatus, GameStatus } from '../types/GameStatus.enum';
+import { OnChainGameState } from '../types/OnChainGameState';
 import {
   deserializeState,
   GameState,
@@ -44,13 +44,13 @@ export class GameService {
     const state = await this.getOnChainGameState(payload.gameId);
 
     let updatedState = state;
-    if (state && state.gameStatus !== GameOnChainStatus.IN_PROGRESS) {
+    if (state && state.gameStatus !== GameStatusD.InProgress) {
       const maxAttempts = 10;
       let attempts = 0;
 
       while (
         updatedState &&
-        updatedState.gameStatus !== GameOnChainStatus.IN_PROGRESS &&
+        updatedState.gameStatus !== GameStatusD.InProgress &&
         attempts < maxAttempts
       ) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -64,9 +64,6 @@ export class GameService {
       creator: user._id,
       createdAt: new Date(),
       updatedAt: new Date(),
-      status: this.mapGameOnChainStatusToGameStatus(
-        updatedState?.gameStatus || GameOnChainStatus.PENDING,
-      ),
     });
 
     await game.save();
@@ -117,7 +114,6 @@ export class GameService {
         name: 1,
         description: 1,
         category: 1,
-        status: 1,
         createdAt: 1,
         deadline: 1,
       })
@@ -134,39 +130,9 @@ export class GameService {
     };
   }
 
-  async finishGame(gameId: string): Promise<void> {
-    const game = await this.gameModel.findOne({ gameId }).exec();
-    if (!game) {
-      throw new Error('Game not found');
-    }
-    if (game.status !== GameStatus.IN_PROGRESS) {
-      throw new Error('Game is not in progress');
-    }
-    game.status = GameStatus.FINISHED;
-    game.updatedAt = new Date();
-    await game.save();
-  }
-
   async getOnChainState(): Promise<{
     gameIds: number[];
-    games: Array<{
-      gameId: number;
-      creator: string;
-      gameStatus: GameStatusD;
-      /**
-       * ISO timestamp with millis
-       */
-      gameDeadline: string;
-      players: string[];
-      gameDataSvar: { rawId: string };
-      entriesSvars: Array<{ rawId: string }>;
-      resultsSvars: Array<{ rawId: string }>;
-      leaderboard: Array<{
-        gameId: number;
-        player: string;
-        score: number;
-      }>;
-    }>;
+    games: OnChainGameState[];
   }> {
     const settings = await this.settingService.findAll();
 
@@ -261,22 +227,5 @@ export class GameService {
     }
 
     return game;
-  }
-
-  private mapGameOnChainStatusToGameStatus(
-    onChainStatus: GameOnChainStatus,
-  ): GameStatus {
-    switch (onChainStatus) {
-      case GameOnChainStatus.PENDING:
-        return GameStatus.PENDING;
-      case GameOnChainStatus.IN_PROGRESS:
-        return GameStatus.IN_PROGRESS;
-      case GameOnChainStatus.COMPLETE:
-        return GameStatus.FINISHED;
-      case GameOnChainStatus.PUBLISHED:
-        return GameStatus.PUBLISHED;
-      default:
-        throw new Error(`Unknown GameOnChainStatus: ${String(onChainStatus)}`);
-    }
   }
 }

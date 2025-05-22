@@ -1,10 +1,12 @@
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Pagination,
   PaginationContent,
@@ -15,10 +17,12 @@ import {
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function GamesListPage() {
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(12);
+  const navigate = useNavigate();
 
   const fetchGames = useCallback(async () => {
     const response = await axiosInstance.get(
@@ -39,7 +43,6 @@ export function GamesListPage() {
       name: string;
       description: string;
       category: string;
-      status: string;
       createdAt: string;
       deadline: string;
     }>;
@@ -68,39 +71,73 @@ export function GamesListPage() {
               <Card key={game.gameId}>
                 <CardHeader>
                   <CardTitle>{game.name}</CardTitle>
-                  <CardDescription>
-                    {game.description.slice(0, 100)}
-                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p>Category: {game.category}</p>
-                  <p>Status: {game.status}</p>
-                  <p>Created At: {new Date(game.createdAt).toLocaleString()}</p>
-                  <p>Deadline: {new Date(game.deadline).toLocaleString()}</p>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Description</Label>
+                    <p className="text-sm text-muted-foreground">
+                      {game.description.slice(0, 100)}
+                      {game.description.length > 100 ? "..." : ""}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Category</Label>
+                    <p className="text-sm text-muted-foreground">
+                      {game.category}
+                    </p>
+                  </div>
                 </CardContent>
+                <CardFooter className="flex justify-center">
+                  {+new Date(game.deadline) > +new Date() ? (
+                    <Button
+                      onClick={() => {
+                        navigate(`/games/${game.gameId}`);
+                      }}
+                    >
+                      Join Game
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="link"
+                      onClick={() => {
+                        navigate(`/games/${game.gameId}`);
+                      }}
+                    >
+                      View Leaderboard
+                    </Button>
+                  )}
+                </CardFooter>
               </Card>
             ))}
           </div>
         </div>
       )}
 
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            >
-              Previous
-            </PaginationPrevious>
-          </PaginationItem>
-
-          <PaginationItem>
-            <PaginationNext onClick={() => setPage((prev) => prev + 1)}>
-              Next
-            </PaginationNext>
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+      {query.data?.page || 0 > 0 || query.data?.totalPages || 1 > 1 ? (
+        <Pagination className="mt-4">
+          <PaginationContent>
+            <p className="text-sm text-muted-foreground">
+              {query.data?.page || 1} / {query.data?.totalPages || 1}
+            </p>
+            {(query.data?.page || 1) > 1 && (
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                >
+                  Previous
+                </PaginationPrevious>
+              </PaginationItem>
+            )}
+            {(query.data?.page || 1) < (query.data?.totalPages || 1) && (
+              <PaginationItem>
+                <PaginationNext onClick={() => setPage((prev) => prev + 1)}>
+                  Next
+                </PaginationNext>
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
+      ) : null}
     </div>
   );
 }

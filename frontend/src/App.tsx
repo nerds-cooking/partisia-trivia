@@ -4,7 +4,6 @@ import { Navbar } from "./components/nav";
 import { CreateGamePage } from "./pages/create-game";
 import { GameViewPage } from "./pages/game/game-view";
 import { GamesListPage } from "./pages/games";
-import { HomePage } from "./pages/home";
 
 function Layout({
   children,
@@ -30,8 +29,8 @@ function App() {
         <Route
           path="/"
           element={
-            <Layout>
-              <HomePage />
+            <Layout maxWidth={800}>
+              <GamesListPage />
             </Layout>
           }
         />
@@ -40,14 +39,6 @@ function App() {
           element={
             <Layout maxWidth={800}>
               <CreateGamePage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/games"
-          element={
-            <Layout maxWidth={800}>
-              <GamesListPage />
             </Layout>
           }
         />

@@ -69,26 +69,20 @@ export class GameController {
         throw new Error('Game not found');
       }
 
-      return game;
+      // Fetch the on-chain game state
+      const onChainGameState =
+        await this.gameService.getOnChainGameState(gameId);
+      if (!onChainGameState) {
+        throw new Error('On-chain game state not found');
+      }
+
+      return {
+        ...game.toObject(),
+        onChainGameState,
+      };
     } catch (e) {
       console.error('Error fetching game:', e);
       throw new Error('Failed to fetch game');
-    }
-  }
-
-  @Get('/:gameId/state')
-  async getGameState(@Param('gameId') gameId: string) {
-    try {
-      const game = await this.gameService.getOnChainGameState(gameId);
-
-      if (!game) {
-        throw new Error('Game not found');
-      }
-
-      return game;
-    } catch (e) {
-      console.error('Error fetching game state:', e);
-      throw new Error('Failed to fetch game state');
     }
   }
 }

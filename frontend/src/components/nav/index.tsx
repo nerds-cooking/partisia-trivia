@@ -5,7 +5,13 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Award, Gamepad, Menu, Settings } from "lucide-react"; // Importing Icons
+import {
+  Gamepad2Icon,
+  GamepadIcon,
+  HelpCircleIcon,
+  Menu,
+  Settings,
+} from "lucide-react"; // Importing Icons
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -42,7 +48,7 @@ export function Navbar() {
                       className="hover:text-foreground hover:bg-muted flex items-center gap-2"
                     >
                       <div className="flex items-center gap-2">
-                        <Gamepad className="h-5 w-5" />
+                        <Gamepad2Icon className="h-5 w-5" />
                         <Link to="/create-game">Create Game</Link>
                       </div>
                     </Button>
@@ -54,21 +60,23 @@ export function Navbar() {
                       className="hover:text-foreground hover:bg-muted flex items-center gap-2"
                     >
                       <div className="flex items-center gap-2">
-                        <Award className="h-5 w-5" />
-                        <Link to="/leaderboard">Leaderboard</Link>
+                        <GamepadIcon className="h-5 w-5" />
+                        <Link to="/">Games</Link>
                       </div>
                     </Button>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <Button
-                      variant="ghost"
-                      className="hover:text-foreground hover:bg-muted flex items-center gap-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Settings className="h-5 w-5" />
-                        How to play
-                      </div>
-                    </Button>
+                    <SheetTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="hover:text-foreground hover:bg-muted flex items-center gap-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <HelpCircleIcon className="h-5 w-5" />
+                          How to play
+                        </div>
+                      </Button>
+                    </SheetTrigger>
                   </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>
@@ -106,21 +114,21 @@ export function Navbar() {
                       to="/create-game"
                       className="flex items-center gap-2 w-full text-left"
                     >
-                      <Gamepad className="h-5 w-5" /> Create Game
+                      <Gamepad2Icon className="h-5 w-5" /> Create Game
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link
-                      to="/leaderboard"
+                      to="/"
                       className="flex items-center gap-2 w-full text-left"
                     >
-                      <Award className="h-5 w-5" /> Leaderboard
+                      <GamepadIcon className="h-5 w-5" /> Games
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <SheetTrigger asChild>
                       <button className="flex items-center gap-2 w-full text-left">
-                        <Settings className="h-5 w-5" /> How to play
+                        <HelpCircleIcon className="h-5 w-5" /> How to play
                       </button>
                     </SheetTrigger>
                   </DropdownMenuItem>

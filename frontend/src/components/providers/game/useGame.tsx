@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { OnChainGameState } from "@/lib/types/OnChainGameState";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export interface Game {
   updatedAt: string;
   deadline: string;
   creationTxn: string;
+  onChainGameState: OnChainGameState;
 }
 
 export function useGame(gameId: string) {

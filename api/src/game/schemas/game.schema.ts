@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { GameStatus } from '../types/GameStatus.enum';
 
 @Schema()
 export class Game extends Document {
@@ -19,7 +18,7 @@ export class Game extends Document {
           num <= 4_294_967_295 // u32 limit
         );
       },
-      message: 'gameId must be a numeric string between 0 and 65535',
+      message: 'gameId must be a numeric string between 0 and 4294967295',
     },
   })
   gameId: string;
@@ -41,9 +40,6 @@ export class Game extends Document {
     }>;
   }>;
 
-  @Prop({ type: 'string', enum: GameStatus })
-  status: GameStatus;
-
   @Prop({ default: Date.now })
   createdAt: Date;
 
@@ -58,6 +54,9 @@ export class Game extends Document {
 
   @Prop({ required: true, unique: true })
   creationTxn: string;
+
+  @Prop()
+  finishTxn: string;
 }
 
 export const GameSchema = SchemaFactory.createForClass(Game);

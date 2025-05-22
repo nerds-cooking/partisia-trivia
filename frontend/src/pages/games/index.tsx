@@ -63,53 +63,51 @@ export function GamesListPage() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: "16px",
+            gap: 16,
           }}
         >
-          <div>
-            {query.data.games.map((game) => (
-              <Card key={game.gameId}>
-                <CardHeader>
-                  <CardTitle>{game.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Description</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {game.description.slice(0, 100)}
-                      {game.description.length > 100 ? "..." : ""}
-                    </p>
-                  </div>
-                  <div>
-                    <Label>Category</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {game.category}
-                    </p>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-center">
-                  {+new Date(game.deadline) > +new Date() ? (
-                    <Button
-                      onClick={() => {
-                        navigate(`/games/${game.gameId}`);
-                      }}
-                    >
-                      Join Game
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="link"
-                      onClick={() => {
-                        navigate(`/games/${game.gameId}`);
-                      }}
-                    >
-                      View Leaderboard
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          {query.data.games.map((game) => (
+            <Card key={game.gameId}>
+              <CardHeader>
+                <CardTitle>{game.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Description</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {game.description.slice(0, 100)}
+                    {game.description.length > 100 ? "..." : ""}
+                  </p>
+                </div>
+                <div>
+                  <Label>Category</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {game.category}
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-center">
+                {+new Date(game.deadline) > +new Date() ? (
+                  <Button
+                    onClick={() => {
+                      navigate(`/games/${game.gameId}`);
+                    }}
+                  >
+                    Join Game
+                  </Button>
+                ) : (
+                  <Button
+                    variant="link"
+                    onClick={() => {
+                      navigate(`/games/${game.gameId}`);
+                    }}
+                  >
+                    View Leaderboard
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
         </div>
       )}
 

@@ -14,7 +14,7 @@ export default defineConfig({
       stream: "stream-browserify", // Polyfill for stream module
       buffer: "buffer", // Polyfill for Buffer
       assert: "assert", // Polyfill for assert
-      process: "process/browser", // Polyfill for process
+      process: "process", // Polyfill for process
       global: "globalThis", // Polyfill for global
       events: "events", // Polyfill for events
       "@": path.resolve(__dirname, "./src"),

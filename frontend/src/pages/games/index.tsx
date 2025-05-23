@@ -1,12 +1,5 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { GameCard } from "@/components/cards/GameCard";
+import { Game } from "@/components/providers/game/useGame";
 import {
   Pagination,
   PaginationContent,
@@ -17,12 +10,10 @@ import {
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 export function GamesListPage() {
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
-  const navigate = useNavigate();
 
   const fetchGames = useCallback(async () => {
     const response = await axiosInstance.get(
@@ -37,15 +28,7 @@ export function GamesListPage() {
   }, [limit, page]);
 
   const query = useQuery<{
-    games: Array<{
-      _id: string;
-      gameId: string;
-      name: string;
-      description: string;
-      category: string;
-      createdAt: string;
-      deadline: string;
-    }>;
+    games: Game[];
     totalItems: number;
     totalPages: number;
     page: number;
@@ -67,46 +50,7 @@ export function GamesListPage() {
           }}
         >
           {query.data.games.map((game) => (
-            <Card key={game.gameId}>
-              <CardHeader>
-                <CardTitle>{game.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Description</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {game.description.slice(0, 100)}
-                    {game.description.length > 100 ? "..." : ""}
-                  </p>
-                </div>
-                <div>
-                  <Label>Category</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {game.category}
-                  </p>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-center">
-                {+new Date(game.deadline) > +new Date() ? (
-                  <Button
-                    onClick={() => {
-                      navigate(`/games/${game.gameId}`);
-                    }}
-                  >
-                    Join Game
-                  </Button>
-                ) : (
-                  <Button
-                    variant="link"
-                    onClick={() => {
-                      navigate(`/games/${game.gameId}`);
-                    }}
-                  >
-                    View Leaderboard
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
+            <GameCard key={game.gameId} game={game} />
           ))}
         </div>
       )}

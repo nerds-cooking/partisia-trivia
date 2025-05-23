@@ -1,14 +1,14 @@
-import { SortableItem } from '@/components/misc/sortable-item';
+import { SortableItem } from "@/components/misc/sortable-item";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger
-} from '@/components/ui/accordion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   closestCenter,
   DndContext,
@@ -18,25 +18,25 @@ import {
   PointerSensor,
   UniqueIdentifier,
   useSensor,
-  useSensors
-} from '@dnd-kit/core';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+  useSensors,
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   arrayMove,
   SortableContext,
-  verticalListSortingStrategy
-} from '@dnd-kit/sortable';
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import {
   CircleAlert,
   CircleCheckIcon,
   CircleIcon,
   GripIcon,
   PlusCircle,
-  X
-} from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+  X,
+} from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export interface CreateGameStep2Form {
   questions: {
@@ -55,15 +55,15 @@ export interface CreateGameStep2Props {
 export function CreateGameStep2({
   defaultValues,
   onSubmit,
-  handlePreviousStep
+  handlePreviousStep,
 }: CreateGameStep2Props) {
   const { register, handleSubmit, setValue, getValues, watch } =
     useForm<CreateGameStep2Form>({
       defaultValues,
-      mode: 'onBlur'
+      mode: "onBlur",
     });
 
-  const questions = watch('questions');
+  const questions = watch("questions");
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
@@ -82,7 +82,7 @@ export function CreateGameStep2({
     );
     const newIndex = questions.findIndex((_, i) => `question-${i}` === over.id);
     const reordered = arrayMove(questions, oldIndex, newIndex);
-    setValue('questions', reordered);
+    setValue("questions", reordered);
 
     if (openAccordion) {
       const previousIndex = questions.findIndex(
@@ -119,22 +119,22 @@ export function CreateGameStep2({
     const updated = [...questions];
     updated[questionIndex].options = reordered;
     updated[questionIndex].correctAnswer = newCorrectAnswer;
-    setValue('questions', updated);
+    setValue("questions", updated);
   };
 
   const getQuestionError = (idx: number) => {
     const question = questions[idx];
-    if (!question) return 'Missing question';
-    if (!question.question) return 'Please fill in the question.';
+    if (!question) return "Missing question";
+    if (!question.question) return "Please fill in the question.";
     if (question.options.length < 2)
-      return 'Please provide at least two options.';
+      return "Please provide at least two options.";
     if (question.options.some((opt) => !opt))
-      return 'Please fill in all options.';
+      return "Please fill in all options.";
     if (
       question.correctAnswer < 0 ||
       question.correctAnswer >= question.options.length
     )
-      return 'Please select a correct answer.';
+      return "Please select a correct answer.";
     return false;
   };
 
@@ -152,11 +152,11 @@ export function CreateGameStep2({
 
   return (
     <form onSubmit={submitForm}>
-      <Card>
+      <Card className="bg-white/10 backdrop-blur-sm border-0 shadow-xl">
         <CardHeader>
-          <CardTitle>Questions and Answers</CardTitle>
+          <CardTitle>2. Questions and Answers</CardTitle>
         </CardHeader>
-        <CardContent className='space-y-4'>
+        <CardContent className="space-y-4">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -175,40 +175,43 @@ export function CreateGameStep2({
                     key={`question-${index}`}
                     id={`question-${index}`}
                     dragHandle={
-                      <div className='cursor-grab pt-3'>
+                      <div className="cursor-grab pt-3">
                         <GripIcon />
                       </div>
                     }
                   >
                     <Accordion
-                      type='single'
+                      type="single"
                       collapsible
-                      value={openAccordion || ''}
+                      value={openAccordion || ""}
                       onValueChange={setOpenAccordion}
                     >
                       <AccordionItem value={`question-${index}`}>
                         <AccordionTrigger
                           className={
-                            hasError ? 'text-red-500 border-red-500' : ''
+                            hasError ? "text-violet-800 border-violet-800" : ""
                           }
                         >
-                          <span className='flex items-center'>
-                            {hasError && <CircleAlert className='mr-2' />}
-                            Question {index + 1}:{' '}
-                            {question.question || 'Untitled'}
+                          <span className="flex items-center">
+                            {hasError && <CircleAlert className="mr-2" />}
+                            Question {index + 1}:{" "}
+                            {question.question || "Untitled"}
                           </span>
                         </AccordionTrigger>
                         <AccordionContent>
-                          <div className='p-1 space-y-2'>
+                          <div className="p-1 space-y-2">
                             {hasError && (
-                              <p className='text-sm text-red-600'>{hasError}</p>
+                              <p className="text-sm text-violet-600">
+                                {hasError}
+                              </p>
                             )}
                             <Label>Question</Label>
                             <Input
                               {...register(`questions.${index}.question`)}
                               placeholder={`Enter question ${index + 1}`}
+                              className="bg-white/20 border-none text-white placeholder:text-white/50"
                             />
-                            <Label className='mt-2'>Answers</Label>
+                            <Label className="mt-2">Answers</Label>
                             <DndContext
                               sensors={sensors}
                               collisionDetection={closestCenter}
@@ -228,15 +231,15 @@ export function CreateGameStep2({
                                     key={`option-${optIdx}`}
                                     id={`option-${optIdx}`}
                                     dragHandle={
-                                      <div className='cursor-grab pt-1'>
+                                      <div className="cursor-grab pt-1">
                                         <GripIcon />
                                       </div>
                                     }
                                   >
-                                    <div className='flex items-center space-x-2'>
+                                    <div className="flex items-center space-x-2">
                                       <Button
-                                        type='button'
-                                        variant='ghost'
+                                        type="button"
+                                        variant="ghost"
                                         onClick={() =>
                                           setValue(
                                             `questions.${index}.correctAnswer`,
@@ -254,23 +257,24 @@ export function CreateGameStep2({
                                         {...register(
                                           `questions.${index}.options.${optIdx}`
                                         )}
-                                        placeholder='Enter option'
-                                        className={
+                                        placeholder="Enter option"
+                                        className={`bg-white/20 text-white placeholder:text-white/50 ${
                                           question.correctAnswer === optIdx
-                                            ? 'border-green-500'
-                                            : ''
-                                        }
+                                            ? "border-lime-800"
+                                            : "border-white/0"
+                                        }`}
                                       />
                                       <Button
-                                        variant='destructive'
+                                        variant="destructive"
+                                        className="bg-red-600 hover:bg-red-700"
                                         onClick={() => {
                                           const newOptions = [
-                                            ...question.options
+                                            ...question.options,
                                           ];
                                           newOptions.splice(optIdx, 1);
                                           const updated = [...questions];
                                           updated[index].options = newOptions;
-                                          setValue('questions', updated);
+                                          setValue("questions", updated);
                                         }}
                                       >
                                         <X />
@@ -281,23 +285,24 @@ export function CreateGameStep2({
                               </SortableContext>
                             </DndContext>
                             <Button
-                              variant='secondary'
+                              variant="secondary"
                               onClick={() => {
                                 const updated = [...questions];
-                                updated[index].options.push('');
-                                setValue('questions', updated);
+                                updated[index].options.push("");
+                                setValue("questions", updated);
                               }}
+                              className="mt-4 bg-white/20 hover:bg-white/30 text-white"
                             >
                               Add Option
                             </Button>
                             <Button
-                              variant='destructive'
+                              variant="destructive"
                               onClick={() => {
                                 const updated = [...questions];
                                 updated.splice(index, 1);
-                                setValue('questions', updated);
+                                setValue("questions", updated);
                               }}
-                              className='mt-4 ml-2'
+                              className="mt-4 ml-2 bg-red-600 hover:bg-red-700"
                             >
                               Remove Question
                             </Button>
@@ -311,30 +316,36 @@ export function CreateGameStep2({
             </SortableContext>
             <DragOverlay>
               {activeId && (
-                <div className='p-4 border rounded shadow'>Dragging...</div>
+                <div className="p-4 border rounded shadow">Dragging...</div>
               )}
             </DragOverlay>
           </DndContext>
           <Button
-            variant='outline'
+            variant="outline"
             onClick={() => {
-              setValue('questions', [
+              setValue("questions", [
                 ...questions,
-                { question: '', options: ['', ''], correctAnswer: 0 }
+                { question: "", options: ["", ""], correctAnswer: 0 },
               ]);
             }}
+            className="w-full bg-white/20 hover:bg-white/30 text-white"
           >
             Add Question <PlusCircle />
           </Button>
-          <div className='flex justify-between'>
+          <div className="flex justify-between">
             <Button
-              type='button'
-              variant='ghost'
+              type="button"
+              variant="ghost"
               onClick={() => handlePreviousStep(getValues())}
             >
               Back
             </Button>
-            <Button type='submit'>Next</Button>
+            <Button
+              type="submit"
+              className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-medium"
+            >
+              Next
+            </Button>
           </div>
         </CardContent>
       </Card>

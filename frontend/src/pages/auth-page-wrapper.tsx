@@ -30,7 +30,7 @@ export function AuthPageWrapper({ children }: { children: React.ReactNode }) {
       <div className="flex items-center justify-center flex-col">
         <p className="text-lg font-semibold mb-6">Login to continue</p>
         <Button
-          className="w-1/3 min-w-[200px]"
+          className="w-full bg-green-500 hover:bg-green-600 text-white font-bold text-lg py-6 rounded-full shadow-lg transition-transform hover:scale-105"
           disabled={authenticating}
           variant="outline"
           onClick={() => {

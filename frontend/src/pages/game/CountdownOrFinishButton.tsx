@@ -27,7 +27,7 @@ export function CountdownOrFinishButton({
 
   if (isPending) {
     return (
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-black/60">
         Waiting for on-chain creation by MPC nodes...
       </p>
     );
@@ -37,7 +37,7 @@ export function CountdownOrFinishButton({
     const timeLeft = Math.max(0, gameDeadline.getTime() - now.getTime());
     const minutesLeft = Math.floor(timeLeft / 1000 / 60);
     return (
-      <p className="text-sm text-gray-500">Time left: {minutesLeft} minutes</p>
+      <p className="text-sm text-black/60">Time left: {minutesLeft} minutes</p>
     );
   }
 
@@ -54,14 +54,14 @@ export function CountdownOrFinishButton({
 
   if (isFinished) {
     return (
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-black/60">
         Game finished! Waiting for MPC nodes
       </p>
     );
   }
 
   if (isPublished) {
-    return <p className="text-sm text-gray-500">Results published!</p>;
+    return <p className="text-sm text-black/60">Results published!</p>;
   }
 
   return null;

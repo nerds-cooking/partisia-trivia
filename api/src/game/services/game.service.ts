@@ -96,12 +96,12 @@ export class GameService {
     page: number,
     limit: number,
   ): Promise<{
-    games: Game[];
+    games: Array<Game & { onChainGameState?: OnChainGameState }>;
     totalItems: number;
     totalPages: number;
     page: number;
   }> {
-    const games = await this.gameModel
+    const games = (await this.gameModel
       .find()
       .sort({
         createdAt: -1,
@@ -117,13 +117,26 @@ export class GameService {
         createdAt: 1,
         deadline: 1,
       })
-      .exec();
+      .exec()) as unknown as Array<
+      Game & { onChainGameState: OnChainGameState }
+    >;
 
     const totalItems = await this.gameModel.countDocuments().exec();
     const totalPages = Math.ceil(totalItems / limit);
 
+    const onChainState = await this.getOnChainState();
+
     return {
-      games,
+      games: games.map((game) => {
+        const onChainGameState = onChainState.games.find(
+          (g) => g.gameId === Number(game.gameId),
+        );
+
+        return {
+          ...game.toObject(),
+          onChainGameState: onChainGameState,
+        };
+      }),
       totalItems,
       totalPages,
       page,

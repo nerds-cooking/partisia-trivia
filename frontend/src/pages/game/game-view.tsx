@@ -2,7 +2,13 @@ import { useGame } from "@/components/providers/game/useGame";
 import { usePartisia } from "@/components/providers/partisia/usePartisia";
 import { useSettings } from "@/components/providers/setting/useSettings";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -207,136 +213,142 @@ export function GameViewPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <div className="flex items-center justify-between w-full max-w-2xl px-4 py-2">
-        <h1 className="text-2xl/7 mb-6 pt-1">{game?.name}</h1>
+    <Card className="bg-white/10 backdrop-blur-sm border-0 shadow-xl">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between text-xl font-bold">
+          {game?.name}
 
-        {!isSubmitting && (
-          <CountdownOrFinishButton
-            isPending={isPending}
-            isInProgress={isInProgress}
-            isPendingFinish={isPendingFinish}
-            isFinished={isFinished}
-            isPublished={isPublished}
-            onChainGameState={game.onChainGameState}
-            currentAccount={sdk.connection.account.address}
-            onFinish={onFinish}
-          />
-        )}
-      </div>
-      <div className="w-full max-w-2xl px-4 py-2">
-        <Label>Description</Label>
-        <p className="text-sm text-gray-500">{game.description}</p>
-      </div>
-      <div className="flex items-start justify-between w-full max-w-2xl px-4 py-2">
-        <div>
-          <Label>Category</Label>
-          <p className="text-sm text-gray-500">{game.category}</p>
-        </div>
-        <div>
-          <Label>Created At</Label>
-          <p className="text-sm text-gray-500">
-            {new Date(game?.createdAt).toLocaleString()}
-          </p>
-        </div>
-        <div>
-          <Label>Deadline</Label>
-          <p className="text-sm text-gray-500">
-            {new Date(game?.deadline).toLocaleString()}
-          </p>
-        </div>
-      </div>
+          {!isSubmitting && (
+            <CountdownOrFinishButton
+              isPending={isPending}
+              isInProgress={isInProgress}
+              isPendingFinish={isPendingFinish}
+              isFinished={isFinished}
+              isPublished={isPublished}
+              onChainGameState={game.onChainGameState}
+              currentAccount={sdk.connection.account.address}
+              onFinish={onFinish}
+            />
+          )}
+        </CardTitle>
+        <CardDescription className="text-sm text-gray-900 mt-2 flex items-center gap-2">
+          {game.description}
+        </CardDescription>
+      </CardHeader>
 
-      {isInProgress && (
-        <div className="mt-8 w-full max-w-md">
-          {game?.onChainGameState?.players.includes(
-            sdk.connection.account.address
-          ) ? (
-            <p>You have already played this game</p>
-          ) : (
-            <>
-              <div>
-                {activeQuestionIdx === game?.questions.length ? (
-                  <AnswersSummary game={game} answers={answers} />
-                ) : (
-                  <QuestionView
-                    question={game?.questions[activeQuestionIdx]}
-                    index={activeQuestionIdx}
-                    setAnswers={setAnswers}
-                    answers={answers}
-                  />
-                )}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: "16px",
-                  gap: "8px",
-                }}
-              >
-                <Button
-                  variant="outline"
-                  className="w-1/3"
-                  disabled={activeQuestionIdx === 0}
-                  onClick={() => setActiveQuestionIdx((prev) => prev - 1)}
-                >
-                  Previous
-                </Button>
-                {activeQuestionIdx !== game?.questions.length && (
-                  <p className="text-sm text-gray-500">
-                    {activeQuestionIdx + 1} / {game?.questions.length}
-                  </p>
-                )}
-                <Button
-                  variant="default"
-                  className="w-1/3"
-                  disabled={isSubmitting}
-                  onClick={() => {
-                    if (activeQuestionIdx === game?.questions.length) {
-                      onSubmit();
-                      return;
-                    }
-                    // Check if the answer is selected
-                    if (answers[activeQuestionIdx] === -1) {
-                      toast.error("Please select an answer");
-                      return;
-                    }
-                    // Move to the next question
-                    setActiveQuestionIdx((prev) => prev + 1);
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="p-4 rounded-lg shadow-sm bg-white/20">
+            <p className="text-sm font-semibold text-gray-900">Category</p>
+            <p className="text-sm text-gray-900">{game.category}</p>
+          </div>
+          <div className="p-4 rounded-lg shadow-sm bg-white/20">
+            <p className="text-sm font-semibold text-gray-900">Created At</p>
+            <p className="text-sm text-gray-900">
+              {new Date(game?.createdAt).toLocaleString()}
+            </p>
+          </div>
+          <div className="p-4 rounded-lg shadow-sm bg-white/20">
+            <p className="text-sm font-semibold text-gray-900">Deadline</p>
+            <p className="text-sm text-gray-900">
+              {new Date(game?.deadline).toLocaleString()}
+            </p>
+          </div>
+        </div>
+
+        {isInProgress && (
+          <div className="mt-8 w-full">
+            {game?.onChainGameState?.players.includes(
+              sdk.connection.account.address
+            ) ? (
+              <p className="text-lg text-violet-800 font-semibold text-center">
+                You have already played this game
+              </p>
+            ) : (
+              <>
+                <div>
+                  {activeQuestionIdx === game?.questions.length ? (
+                    <AnswersSummary game={game} answers={answers} />
+                  ) : (
+                    <QuestionView
+                      question={game?.questions[activeQuestionIdx]}
+                      index={activeQuestionIdx}
+                      setAnswers={setAnswers}
+                      answers={answers}
+                    />
+                  )}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginTop: "16px",
+                    gap: "8px",
                   }}
                 >
-                  {activeQuestionIdx === game?.questions.length
-                    ? "Submit"
-                    : "Next"}
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-      {isPublished && (
-        <div className="mt-8 w-full max-w-2xl px-4 py-2">
-          <Table>
-            <TableCaption>Leaderboard</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Player</TableHead>
-                <TableHead>Score</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {game?.onChainGameState?.leaderboard.map((player, index) => (
-                <TableRow key={index}>
-                  <TableCell>{player.player}</TableCell>
-                  <TableCell>{player.score}</TableCell>
+                  <Button
+                    variant="ghost"
+                    className="w-[100px]"
+                    disabled={activeQuestionIdx === 0}
+                    onClick={() => setActiveQuestionIdx((prev) => prev - 1)}
+                  >
+                    Previous
+                  </Button>
+                  {activeQuestionIdx !== game?.questions.length && (
+                    <p className="text-sm text-gray-700">
+                      {activeQuestionIdx + 1} / {game?.questions.length}
+                    </p>
+                  )}
+                  <Button
+                    variant="default"
+                    className="w-[100px] bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-medium"
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      if (activeQuestionIdx === game?.questions.length) {
+                        onSubmit();
+                        return;
+                      }
+                      // Check if the answer is selected
+                      if (answers[activeQuestionIdx] === -1) {
+                        toast.error("Please select an answer");
+                        return;
+                      }
+                      // Move to the next question
+                      setActiveQuestionIdx((prev) => prev + 1);
+                    }}
+                  >
+                    {activeQuestionIdx === game?.questions.length
+                      ? "Submit"
+                      : "Next"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+        {isPublished && (
+          <div className="mt-8 w-full max-w-2xl px-4 py-2">
+            <Table>
+              <TableCaption>Leaderboard</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Player</TableHead>
+                  <TableHead>Score</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </div>
+              </TableHeader>
+              <TableBody>
+                {game?.onChainGameState?.leaderboard.map((player, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{player.player}</TableCell>
+                    <TableCell>{player.score}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

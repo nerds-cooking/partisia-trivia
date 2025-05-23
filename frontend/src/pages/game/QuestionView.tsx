@@ -20,7 +20,9 @@ export function QuestionView({
 }: QuestionViewProps) {
   return (
     <div className="mb-4">
-      <h2 className="text-xl font-semibold mb-4">{question.question}</h2>
+      <h2 className="text-xl font-semibold mb-4 text-green-300">
+        {question.question}
+      </h2>
       <div
         style={{
           display: "flex",
@@ -31,7 +33,10 @@ export function QuestionView({
         {question.answers.map((answer, idx) => (
           <Button
             key={idx}
-            className="w-full"
+            // className="w-full"
+            className={`w-full border-none hover:bg-violet-700/20 ${
+              answers[index] === idx ? "bg-violet-700" : "bg-gray-200"
+            }`}
             variant={answers[index] === idx ? "default" : "outline"}
             onClick={() => {
               setAnswers((prev) => {

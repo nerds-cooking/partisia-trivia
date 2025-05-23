@@ -27,7 +27,7 @@ A full-stack trivia game that leverages the **MPC (Multi-Party Computation)** in
 Make sure the following tools are installed:
 
 - Java
-- Node.js
+- Node.js (tested against v23.11.0)
 - Yarn
 - Docker
 - Partisia CLI

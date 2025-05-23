@@ -14,7 +14,7 @@ export interface ThemeProviderState {
 }
 
 const initialState: ThemeProviderState = {
-  theme: "system",
+  theme: "dark",
   setTheme: () => null,
 };
 

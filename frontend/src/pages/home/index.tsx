@@ -7,6 +7,7 @@ import {
   CardDescription,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
@@ -71,7 +72,31 @@ export function HomePage() {
           <h3 className="text-3xl font-bold text-center mb-8 text-yellow-200">
             Featured Games
           </h3>
-          {query.isLoading && <p>Loading...</p>}
+          {query.isLoading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="flex flex-col space-y-3">
+                <Skeleton className="h-[125px] rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div>
+              </div>
+              <div className="flex flex-col space-y-3">
+                <Skeleton className="h-[125px] rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div>
+              </div>
+              <div className="flex flex-col space-y-3">
+                <Skeleton className="h-[125px] rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div>
+              </div>
+            </div>
+          )}
           {query.isError && <p>Error: {query.error.message}</p>}
           {query.isSuccess && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

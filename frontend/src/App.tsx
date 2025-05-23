@@ -1,10 +1,22 @@
+import { lazy, Suspense } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./App.css";
 import { Navbar } from "./components/nav";
-import { CreateGamePage } from "./pages/create-game";
-import { GameViewPage } from "./pages/game/game-view";
-import { GamesListPage } from "./pages/games";
-import { HomePage } from "./pages/home";
+
+const HomePage = lazy(() =>
+  import("./pages/home").then((mod) => ({ default: mod.HomePage }))
+);
+const GamesListPage = lazy(() =>
+  import("./pages/games").then((mod) => ({ default: mod.GamesListPage }))
+);
+const CreateGamePage = lazy(() =>
+  import("./pages/create-game").then((mod) => ({ default: mod.CreateGamePage }))
+);
+const GameViewPage = lazy(() =>
+  import("./pages/game/game-view").then((mod) => ({
+    default: mod.GameViewPage,
+  }))
+);
 
 function Layout({
   children,
@@ -27,12 +39,14 @@ function App() {
   return (
     <Router>
       <Layout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/games" element={<GamesListPage />} />
-          <Route path="/create-game" element={<CreateGamePage />} />
-          <Route path="/games/:gameId" element={<GameViewPage />} />
-        </Routes>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/games" element={<GamesListPage />} />
+            <Route path="/create-game" element={<CreateGamePage />} />
+            <Route path="/games/:gameId" element={<GameViewPage />} />
+          </Routes>
+        </Suspense>
       </Layout>
     </Router>
   );

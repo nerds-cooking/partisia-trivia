@@ -6,7 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { GameStatusD } from "@/lib/TriviaApiGenerated";
 import { Clock, Users } from "lucide-react";
+import { DateTime } from "luxon";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Game } from "../providers/game/useGame";
@@ -17,10 +19,26 @@ interface GameCardProps {
 
 export function GameCard({ game }: GameCardProps) {
   const status = useMemo(() => {
-    // TODO: Add logic to determine the status of the game
+    const isPending =
+      game?.onChainGameState?.gameStatus === GameStatusD.Pending;
+    const isInProgress =
+      game?.onChainGameState?.gameStatus === GameStatusD.InProgress &&
+      +new Date() < +new Date(Number(game?.onChainGameState.gameDeadline));
+    const isPendingFinish =
+      game?.onChainGameState?.gameStatus === GameStatusD.InProgress &&
+      +new Date() > +new Date(Number(game?.onChainGameState.gameDeadline));
+    const isFinished =
+      game?.onChainGameState?.gameStatus === GameStatusD.Complete;
+    const isPublished =
+      game?.onChainGameState?.gameStatus === GameStatusD.Published;
 
-    return "waiting";
-  }, [game]);
+    if (isPending) return "waiting";
+    if (isInProgress) return "in-progress";
+    if (isPendingFinish) return "pending-finish";
+    if (isFinished) return "finished";
+    if (isPublished) return "published";
+    return "unknown";
+  }, [game?.onChainGameState?.gameStatus, game?.onChainGameState.gameDeadline]);
 
   return (
     <Link to={`/games/${game.gameId}`}>
@@ -32,9 +50,15 @@ export function GameCard({ game }: GameCardProps) {
               variant={
                 status === "waiting"
                   ? "outline"
-                  : status === "in-progress"
-                    ? "secondary"
-                    : "default"
+                  : status === "pending-finish"
+                    ? "destructive"
+                    : status === "finished"
+                      ? "destructive"
+                      : status === "published"
+                        ? "default"
+                        : status === "in-progress"
+                          ? "secondary"
+                          : "default"
               }
               className={`
               ${
@@ -67,7 +91,15 @@ export function GameCard({ game }: GameCardProps) {
           <div className="text-xs text-white/60">ID: {game.gameId}</div>
           <div className="flex items-center text-xs text-white/60">
             <Clock className="mr-1 h-3 w-3" />
-            <span>Starting soon</span>
+            <span>
+              {status === "in-progress"
+                ? `Finishes ${DateTime.fromMillis(Number(game.onChainGameState.gameDeadline)).toRelative()}`
+                : status === "pending-finish"
+                  ? "Waiting to publish"
+                  : ["finished", "published"].includes(status)
+                    ? `Complete`
+                    : ""}
+            </span>
           </div>
         </CardFooter>
       </Card>

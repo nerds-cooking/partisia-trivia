@@ -38,6 +38,7 @@
     "date-fns": "^4.1.0",
     "events": "^3.3.0",
     "lucide-react": "^0.488.0",
+    "luxon": "^3.6.1",
     "next-themes": "^0.4.6",
     "partisia-blockchain-applications-rpc": "^1.0.13",
     "partisia-blockchain-applications-sdk": "^0.1.4",
@@ -54,6 +55,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/luxon": "^3.6.2",
     "@types/node": "^22.14.1",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

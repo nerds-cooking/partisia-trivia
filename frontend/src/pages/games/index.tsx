@@ -7,6 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import axiosInstance from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
@@ -39,16 +40,34 @@ export function GamesListPage() {
 
   return (
     <div>
-      {query.isLoading && <p>Loading...</p>}
+      {query.isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="flex flex-col space-y-3">
+            <Skeleton className="h-[125px] rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          </div>
+          <div className="flex flex-col space-y-3">
+            <Skeleton className="h-[125px] rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          </div>
+          <div className="flex flex-col space-y-3">
+            <Skeleton className="h-[125px] rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          </div>
+        </div>
+      )}
       {query.isError && <p>Error: {query.error.message}</p>}
       {query.isSuccess && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: 16,
-          }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {query.data.games.map((game) => (
             <GameCard key={game.gameId} game={game} />
           ))}
@@ -58,7 +77,7 @@ export function GamesListPage() {
       {query.data?.page || 0 > 0 || query.data?.totalPages || 1 > 1 ? (
         <Pagination className="mt-4">
           <PaginationContent>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-black/50 font-semibold">
               {query.data?.page || 1} / {query.data?.totalPages || 1}
             </p>
             {(query.data?.page || 1) > 1 && (

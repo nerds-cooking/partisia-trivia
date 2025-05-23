@@ -36,7 +36,7 @@ Make sure the following tools are installed:
 
 ## 📦 Project Structure & Setup
 
-### 3. Smart Contract
+### 1. Smart Contract
 
 - To run smart contract tests:
 

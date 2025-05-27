@@ -1,7 +1,7 @@
-import axiosInstance from "@/lib/axios";
-import { OnChainGameState } from "@/lib/types/OnChainGameState";
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
+import axiosInstance from '@/lib/axios';
+import { OnChainGameState } from '@/lib/types/OnChainGameState';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export interface Game {
   _id: string;
@@ -34,18 +34,23 @@ export function useGame(gameId: string) {
       const resp = await axiosInstance.get(`/api/game/${gameId}`);
 
       if (resp.status !== 200) {
-        throw new Error("Failed to fetch game");
+        throw new Error('Failed to fetch game');
       }
 
       setGame(resp.data);
     } catch (err: unknown) {
-      toast.error("Failed to fetch game");
-      console.error("Error fetching game:", err);
-      setError((err as Error)?.message || "Failed to fetch game");
+      toast.error('Failed to fetch game');
+      console.error('Error fetching game:', err);
+      setError((err as Error)?.message || 'Failed to fetch game');
     } finally {
       setLoading(false);
     }
   }, [gameId]);
+
+  const refreshGame = useCallback(async () => {
+    setError(undefined);
+    return getGame();
+  }, [getGame]);
 
   useEffect(() => {
     getGame();
@@ -53,8 +58,9 @@ export function useGame(gameId: string) {
 
   return {
     getGame,
+    refreshGame,
     game,
     loading,
-    error,
+    error
   };
 }

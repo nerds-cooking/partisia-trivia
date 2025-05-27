@@ -229,16 +229,53 @@ export class GameService {
     return desWithFixedTypes;
   }
 
-  async getOnChainGameState(gameId: string | number): Promise<any> {
-    const gameState = await this.getOnChainState();
+  async getOnChainGameState(
+    gameId: string | number,
+    maxRetries = 3,
+    initialDelay = 1000,
+  ): Promise<any> {
+    let retries = 0;
+    let delay = initialDelay;
 
-    // console.log('gameState', JSON.stringify(gameState, null, 2));
+    while (true) {
+      try {
+        const gameState = await this.getOnChainState();
+        const game = gameState.games.find(
+          (g: any) => g.gameId === Number(gameId),
+        );
 
-    const game = gameState.games.find((g: any) => g.gameId === Number(gameId));
-    if (!game) {
-      throw new Error('Game not found');
+        if (!game) {
+          throw new Error('Game not found');
+        }
+
+        return game;
+      } catch (error) {
+        if (retries >= maxRetries) {
+          console.error(
+            `Failed to get on-chain game state after ${maxRetries} retries:`,
+            error,
+          );
+          throw error;
+        }
+
+        const isRateLimitError =
+          error.response?.status === 429 ||
+          error.message?.includes('rate limit') ||
+          error.message?.includes('too many requests');
+
+        if (!isRateLimitError) {
+          throw error;
+        }
+
+        retries++;
+        console.log(
+          `Rate limit hit, retrying (${retries}/${maxRetries}) after ${delay}ms delay`,
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
+        delay *= 2;
+      }
     }
-
-    return game;
   }
 }

@@ -316,9 +316,6 @@ pub fn entry_processed(
     zk_state: ZkState<VariableKind>,
     output_variables: Vec<SecretVarId>
 ) -> (ContractState, Vec<EventGroup>, Vec<ZkStateChange>) {
-    // TODO: Update entry status to processed so we can safely guarantee that the game is ready to be finished
-
-    let mut zk_state_changes = vec![];
 
     // Grab the metadata for the output variable
     for i in 0..output_variables.len() {
@@ -336,5 +333,5 @@ pub fn entry_processed(
         }
     }
 
-    (state, vec![], zk_state_changes)
+    (state, vec![], vec![])
 }

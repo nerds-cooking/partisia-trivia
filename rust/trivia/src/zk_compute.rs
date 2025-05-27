@@ -5,10 +5,6 @@ use pbc_zk::*;
 // Fixed 20 length array of type Sbi8
 type AnswersArr = [Sbi8; 20];
 
-const VARIABLE_KIND_DISCRIMINANT_GAME_ANSWERS: u8 = 1;
-const VARIABLE_KIND_DISCRIMINANT_ENTRY: u8 = 2;
-// const VARIABLE_KIND_DISCRIMINANT_RESULT: u8 = 3;
-
 #[repr(C)]
 #[derive(Debug, Clone, Copy, CreateTypeSpec, SecretBinary)]
 pub struct Result {

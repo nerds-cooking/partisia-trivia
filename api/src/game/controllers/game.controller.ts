@@ -1,14 +1,28 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  forwardRef,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import {
   RequestSession,
   RequestSessionType,
 } from 'src/auth/decorators/request-session';
+import { UserService } from 'src/users/services/user.service';
 import { CreateGamePayload } from '../payloads/CreateGame.payload';
 import { GameService } from '../services/game.service';
 
 @Controller('game')
 export class GameController {
-  constructor(private readonly gameService: GameService) {}
+  constructor(
+    private readonly gameService: GameService,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
 
   @Post('/')
   async createGame(
@@ -30,10 +44,34 @@ export class GameController {
   @Get('/')
   async getGames(@Query('page') page: string, @Query('limit') limit: string) {
     try {
-      return await this.gameService.getGames(
+      const games = await this.gameService.getGames(
         Number(page || 1),
         Number(limit || 10),
       );
+
+      const addresses: string[] = [];
+
+      games.games.forEach((g) => {
+        addresses.push(...(g.onChainGameState?.players || []));
+        if (g.onChainGameState?.creator) {
+          addresses.push(g.onChainGameState?.creator);
+        }
+      });
+
+      const dedupedAddresses = Array.from(new Set(addresses));
+
+      const users = await this.userService.findByAddresses(dedupedAddresses);
+
+      const userMap: { [address: string]: string } = {};
+
+      users.forEach((user) => {
+        userMap[user.address] = user.username || user.address;
+      });
+
+      return {
+        ...games,
+        userMap,
+      };
     } catch (e) {
       console.error('Error fetching games:', e);
       throw new Error('Failed to fetch games');
@@ -76,9 +114,22 @@ export class GameController {
         throw new Error('On-chain game state not found');
       }
 
+      // Fetch users based on the players in the game
+      const addresses = [
+        ...(onChainGameState.players || []),
+        onChainGameState.creator,
+      ].filter((addr) => addr);
+
+      const users = await this.userService.findByAddresses(addresses);
+      const userMap: { [address: string]: string } = {};
+      users.forEach((user) => {
+        userMap[user.address] = user.username || user.address;
+      });
+
       return {
         ...game.toObject(),
         onChainGameState,
+        userMap,
       };
     } catch (e) {
       console.error('Error fetching game:', e);

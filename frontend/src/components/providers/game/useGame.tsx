@@ -21,6 +21,7 @@ export interface Game {
   deadline: string;
   creationTxn: string;
   onChainGameState: OnChainGameState;
+  userMap: Record<string, string>;
 }
 
 export function useGame(gameId: string) {

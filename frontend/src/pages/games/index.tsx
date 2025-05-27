@@ -33,6 +33,7 @@ export function GamesListPage() {
     totalItems: number;
     totalPages: number;
     page: number;
+    userMap: Record<string, string>;
   }>({
     queryKey: ["games", page, limit],
     queryFn: fetchGames,
@@ -69,7 +70,11 @@ export function GamesListPage() {
       {query.isSuccess && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {query.data.games.map((game) => (
-            <GameCard key={game.gameId} game={game} />
+            <GameCard
+              key={game.gameId}
+              game={game}
+              userMap={query.data.userMap || {}}
+            />
           ))}
         </div>
       )}

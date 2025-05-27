@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  forwardRef,
   Get,
+  Inject,
   Post,
   Query,
   Req,
@@ -9,23 +11,35 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { UserService } from 'src/users/services/user.service';
 import { AuthService } from '../services/auth.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
 
   @Get('me')
-  getMe(@Req() req: Request) {
+  async getMe(@Req() req: Request) {
     // Ensure the user is logged in
     if (!req.session || !req.session.user) {
       throw new UnauthorizedException('Not logged in');
     }
 
+    const user = await this.userService.findByAddress(req.session.user.address);
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
     // Return the user info from the session
     return {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      user: req.session.user,
+      id: user._id,
+      address: user.address,
+      username: user.username,
     };
   }
 

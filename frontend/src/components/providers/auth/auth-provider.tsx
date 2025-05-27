@@ -4,7 +4,9 @@ import { toast } from "sonner";
 import { usePartisia } from "../partisia/usePartisia";
 
 interface User {
+  id: string;
   address: string;
+  username?: string;
   [key: string]: unknown; // Add other user fields as needed
 }
 
@@ -15,6 +17,7 @@ interface AuthContextType {
   authenticating: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  setUsername: (username: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -123,6 +126,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const setUsername = async (username: string) => {
+    if (!user || !user.address) {
+      throw new Error("User not logged in");
+    }
+
+    try {
+      await axios.post("/api/user/username", {
+        username: username.trim(),
+      });
+      setUser((prev) => (prev ? { ...prev, username } : null));
+      toast.success("Username updated successfully!");
+    } catch (err) {
+      console.error("Error setting username:", err);
+      toast.error("Failed to update username. Please try again.");
+    }
+  };
   return (
     <AuthContext.Provider
       value={{
@@ -132,6 +151,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         authenticating,
         login,
         logout,
+        setUsername,
       }}
     >
       {children}

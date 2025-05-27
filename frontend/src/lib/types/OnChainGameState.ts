@@ -1,4 +1,4 @@
-import { GameStatusD } from "../TriviaApiGenerated";
+import { GameStatusD } from '../TriviaApiGenerated';
 
 export interface OnChainGameState {
   gameId: number;
@@ -12,6 +12,7 @@ export interface OnChainGameState {
   gameDataSvar: { rawId: string };
   entriesSvars: Array<{ rawId: string }>;
   resultsSvars: Array<{ rawId: string }>;
+  questionCount: number;
   leaderboard: Array<{
     gameId: number;
     player: string;

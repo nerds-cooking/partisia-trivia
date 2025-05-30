@@ -1,7 +1,7 @@
-import axios from "@/lib/axios";
-import { createContext, ReactNode, useEffect, useState } from "react";
-import { toast } from "sonner";
-import { usePartisia } from "../partisia/usePartisia";
+import axios from '@/lib/axios';
+import { createContext, ReactNode, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { usePartisia } from '../partisia/usePartisia';
 
 interface User {
   id: string;
@@ -35,10 +35,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchMe = async () => {
     try {
-      const res = await axios.get("/api/auth/me");
+      const res = await axios.get('/api/auth/me');
       return res.data;
     } catch (err) {
-      console.error("Error fetching user:", err);
+      console.error('Error fetching user:', err);
       throw err;
     }
   };
@@ -61,12 +61,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchAuthMessage = async (pubKey: string) => {
     try {
-      const res = await axios.get<{ message: string }>("/api/auth/nonce", {
+      const res = await axios.get<{ message: string }>('/api/auth/nonce', {
         params: { pub: pubKey },
       });
       return res.data.message;
     } catch (err) {
-      console.error("Error fetching nonce:", err);
+      console.error('Error fetching nonce:', err);
       throw err;
     }
   };
@@ -76,11 +76,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setAuthenticating(true);
       if (!sdk) {
-        throw new Error("Partisia SDK not initialized");
+        throw new Error('Partisia SDK not initialized');
       }
 
       if (!sdk.isConnected) {
-        throw new Error("Partisia SDK not connected");
+        throw new Error('Partisia SDK not connected');
       }
 
       const account = sdk.connection.account;
@@ -89,15 +89,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const signature = await sdk.signMessage({
         payload: message,
-        payloadType: "utf8",
+        payloadType: 'utf8',
         dontBroadcast: true,
       });
 
       if (!account.address || !signature) {
-        throw new Error("Invalid account address or signature");
+        throw new Error('Invalid account address or signature');
       }
 
-      await axios.post("/api/auth/login", {
+      await axios.post('/api/auth/login', {
         address: account.address,
         signature: signature.signature,
       });
@@ -105,9 +105,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Fetch user session after successful login
       const res = await fetchMe();
       setUser(res);
-      toast.success("Login successful!");
+      toast.success('Login successful!');
     } catch (err) {
-      toast.error("Login failed. Please try again.");
+      toast.error('Login failed. Please try again.');
       throw err;
     } finally {
       setAuthenticating(false);
@@ -117,10 +117,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Logout
   const logout = async () => {
     try {
-      await axios.post("/api/auth/logout");
+      await axios.post('/api/auth/logout');
 
       setUser(null);
-      toast.success("Logout successful!");
+      toast.success('Logout successful!');
     } finally {
       setUser(null);
     }
@@ -128,20 +128,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const setUsername = async (username: string) => {
     if (!user || !user.address) {
-      throw new Error("User not logged in");
+      throw new Error('User not logged in');
     }
 
     try {
-      await axios.post("/api/user/username", {
+      await axios.post('/api/user/username', {
         username: username.trim(),
       });
       setUser((prev) => (prev ? { ...prev, username } : null));
-      toast.success("Username updated successfully!");
+      toast.success('Username updated successfully!');
     } catch (err) {
-      console.error("Error setting username:", err);
-      toast.error("Failed to update username. Please try again.");
+      console.error('Error setting username:', err);
+      toast.error('Failed to update username. Please try again.');
     }
   };
+
+  const unexpectedWalletSelected = useMemo(() => {
+    if (!sdk || !sdk.isConnected || !user) return null;
+
+    const account = sdk.connection.account;
+    if (account.address !== user.address) {
+      return (
+        <div className='fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white p-4 rounded shadow-lg z-50'>
+          <strong>Warning:</strong> The selected wallet does not match the
+          logged-in user.
+        </div>
+      );
+    }
+    return null;
+  }, [sdk, user]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -154,6 +170,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUsername,
       }}
     >
+      {unexpectedWalletSelected}
       {children}
     </AuthContext.Provider>
   );

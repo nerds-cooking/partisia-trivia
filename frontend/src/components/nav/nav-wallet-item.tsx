@@ -1,8 +1,8 @@
-import { ellipsisAddress } from "@/lib/utils";
-import { FingerprintIcon, UnplugIcon, UserCogIcon } from "lucide-react";
-import { useState } from "react";
-import { useAuth } from "../providers/auth/useAuth";
-import { usePartisia } from "../providers/partisia/usePartisia";
+import { ellipsisAddress } from '@/lib/utils';
+import { FingerprintIcon, UnplugIcon, UserCogIcon } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { useAuth } from '../providers/auth/useAuth';
+import { usePartisia } from '../providers/partisia/usePartisia';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,38 +13,58 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "../ui/alert-dialog";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+} from '../ui/alert-dialog';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
 export function NavWalletItem() {
   const { connect, sdk } = usePartisia();
-  const { user, isAuthenticated, login, setUsername } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    login,
+    setUsername,
+    logout: authLogout,
+  } = useAuth();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [usernameInput, setUsernameInput] = useState("");
+  const [usernameInput, setUsernameInput] = useState('');
+
+  const logout = useCallback(() => {
+    authLogout();
+  }, [authLogout]);
 
   const buttonStyles =
-    "transition-colors px-3 py-2 rounded-md text-sm focus:outline-none";
+    'transition-colors px-3 py-2 rounded-md text-sm focus:outline-none';
 
   // Define explicit default button colors for both states
-  const defaultButtonClass = "bg-transparent text-foreground border-border"; // Transparent background, text color based on foreground
-  const connectedButtonClass = "bg-transparent text-primary border-primary"; // Default color when connected to wallet
+  const defaultButtonClass = 'bg-transparent text-foreground border-border'; // Transparent background, text color based on foreground
+  const connectedButtonClass = 'bg-transparent text-primary border-primary'; // Default color when connected to wallet
 
   if (sdk?.isConnected) {
     if (!isAuthenticated) {
       // Connected but not authenticated, show button to authenticate
       return (
-        <Button
-          variant="outline"
-          className={`${buttonStyles} ${defaultButtonClass} hover:bg-muted hover:text-foreground`}
-          onClick={() => {
-            login();
-          }}
-        >
-          <FingerprintIcon />
-          Login
-        </Button>
+        <>
+          <Button
+            variant='secondary'
+            className={`${buttonStyles} ${connectedButtonClass} hover:bg-muted hover:text-foreground`}
+            onClick={connect}
+          >
+            {ellipsisAddress(sdk.connection.account.address)}
+          </Button>
+
+          <Button
+            variant='outline'
+            className={`${buttonStyles} ${defaultButtonClass} hover:bg-muted hover:text-foreground`}
+            onClick={() => {
+              login();
+            }}
+          >
+            <FingerprintIcon />
+            Login
+          </Button>
+        </>
       );
     }
 
@@ -52,18 +72,27 @@ export function NavWalletItem() {
     return (
       <>
         <Button
-          variant="secondary"
+          variant='secondary'
           className={`${buttonStyles} ${connectedButtonClass} hover:bg-muted hover:text-foreground`}
+          disabled
           onClick={connect}
         >
           {user?.username
-            ? user.username
+            ? `${user.username} (${ellipsisAddress(user.address)})`
             : ellipsisAddress(user?.address || sdk.connection.account.address)}
+        </Button>
+        <Button
+          variant='ghost'
+          className={`${buttonStyles} hover:bg-muted hover:text-foreground`}
+          onClick={logout}
+        >
+          <UnplugIcon />
+          Log out
         </Button>
         {!user?.username && (
           <AlertDialog open={modalOpen} onOpenChange={setModalOpen}>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost">
+              <Button variant='ghost'>
                 <UserCogIcon />
               </Button>
             </AlertDialogTrigger>
@@ -74,7 +103,7 @@ export function NavWalletItem() {
 
                   setUsername(usernameInput.trim()).then(() => {
                     setModalOpen(false);
-                    setUsernameInput("");
+                    setUsernameInput('');
                   });
                 }}
               >
@@ -82,7 +111,7 @@ export function NavWalletItem() {
                   <AlertDialogTitle>Set a username?</AlertDialogTitle>
                   <AlertDialogDescription>
                     <Input
-                      placeholder="Enter your username"
+                      placeholder='Enter your username'
                       value={usernameInput}
                       onChange={(e) => {
                         setUsernameInput(e.target.value);
@@ -90,16 +119,16 @@ export function NavWalletItem() {
                     />
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter className="mt-4">
+                <AlertDialogFooter className='mt-4'>
                   <AlertDialogCancel
                     onClick={() => {
-                      setUsernameInput("");
+                      setUsernameInput('');
                     }}
                   >
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction
-                    type="submit"
+                    type='submit'
                     disabled={!usernameInput.trim()}
                   >
                     Save
@@ -116,7 +145,7 @@ export function NavWalletItem() {
   // Show button to connect to wallet
   return (
     <Button
-      variant="outline"
+      variant='outline'
       className={`${buttonStyles} ${defaultButtonClass} hover:bg-muted hover:text-foreground`}
       onClick={connect}
     >
